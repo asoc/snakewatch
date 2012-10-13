@@ -20,6 +20,7 @@ setup(
     long_description = read('README'),
 
     packages = ['snakewatch'],
+    install_requires = ['colorama',],
     
     license = 'LGPL',
     classifiers = [

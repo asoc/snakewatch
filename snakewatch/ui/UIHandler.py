@@ -9,9 +9,13 @@ class UIHandler:
         pass
     
     @abstractmethod
-    def run(self, input, config):
+    def run(self, start_input, start_config):
         raise RuntimeError(__AF_ERR)
     
     @abstractmethod
     def close(self):
+        raise RuntimeError(__AF_ERR)
+    
+    @abstractmethod
+    def handle_signal(self, signum, frame):
         raise RuntimeError(__AF_ERR)

@@ -5,6 +5,8 @@ Python Tail'er
 
 # System modules
 import sys
+import signal
+import os
 import argparse
 
 # Program modules
@@ -18,6 +20,7 @@ def main(args):
     '''
     Main code entry point
     '''
+    
     parser = argparse.ArgumentParser(
         prog=NAME,
         description=DESCRIPTION,
@@ -52,6 +55,11 @@ def main(args):
     args = parser.parse_args(args)
     
     handler = ui.get_handler(args.console)
+    
+    signal.signal(signal.SIGHUP, handler.handle_signal)
+    signal.signal(signal.SIGINT, handler.handle_signal)
+    signal.signal(signal.SIGQUIT, handler.handle_signal)
+    signal.signal(signal.SIGABRT, handler.handle_signal)
     
     if args.read:
         input = sys.stdin
