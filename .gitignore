@@ -1,4 +1,12 @@
+bin
+include
+lib
 *.pyc
 *.swp
 .DS_Store*
-*.log
+.ropeproject
+.Python
+.project
+.pydevproject
+build
+tags
