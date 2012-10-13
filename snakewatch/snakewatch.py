@@ -51,11 +51,14 @@ def main(args):
     
     args = parser.parse_args(args)
     
-    if args.console:
-        ui_handler = ui.ConsoleHandler()
+    handler = ui.get_handler(args.console)
+    
+    if args.read:
+        input = sys.stdin
     else:
-        ui_handler = ui.GUIHandler()
-        
+        input = args.watch
+    
+    handler.run(input, args.config)
     
 
 if __name__ == '__main__':
