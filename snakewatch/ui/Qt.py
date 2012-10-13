@@ -7,8 +7,20 @@ class QtHandler(UIHandler):
     def run(self, start_input, start_config):
         pass
 
-    def close(self):
-        pass
-    
     def handle_signal(self, signum, frame):
         pass
+    
+    def started_callback(self):
+        pass
+    
+    def output_callback(self, line):
+        pass
+    
+    def int_callback(self, error):
+        pass
+    
+    def match_config_entry(self, line):
+        pass
+    
+    def quit(self):
+        super(QtHandler, self).quit()

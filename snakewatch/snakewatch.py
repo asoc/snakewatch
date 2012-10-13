@@ -11,6 +11,7 @@ import argparse
 
 # Program modules
 import ui
+import input_type
 
 NAME = 'snakewatch'
 VERSION = '0.1.dev'
@@ -59,16 +60,17 @@ def main(args):
     signal.signal(signal.SIGHUP, handler.handle_signal)
     signal.signal(signal.SIGINT, handler.handle_signal)
     signal.signal(signal.SIGQUIT, handler.handle_signal)
-    signal.signal(signal.SIGABRT, handler.handle_signal)
+    signal.signal(signal.SIGTERM, handler.handle_signal)
     
     if args.read:
-        input = sys.stdin
+        input = input_type.STDInput()
+    elif args.watch is not None:
+        input = input_type.FileInput(args.watch)
     else:
-        input = args.watch
+        input = None
     
     handler.run(input, args.config)
-    
+    handler.quit()
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-    sys.exit()
