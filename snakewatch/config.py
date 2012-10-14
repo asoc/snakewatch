@@ -1,4 +1,5 @@
 import json
+import os
 import importlib
 
 class Config(object):
@@ -36,9 +37,15 @@ class Config(object):
 
 class DefaultConfig(Config):
     def __init__(self):
-        super(DefaultConfig, self).__init__([
-            {
-                'regex': '.*',
-                'action': 'Print',
-            },
-        ])
+        user_default = os.path.expanduser(os.path.join('~', '.snakewatch', 'default.json'))
+        if os.path.exists(user_default):
+            cfg = user_default
+        else:
+            cfg = [
+                {
+                    'regex': '.*',
+                    'action': 'Print',
+                },
+            ]
+        
+        super(DefaultConfig, self).__init__(cfg)
