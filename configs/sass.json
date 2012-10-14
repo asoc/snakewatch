@@ -1,0 +1,17 @@
+[
+    {
+        "regex": "^>>>.*",
+        "action": "Print",
+        "fore": "GREEN"
+    },
+    {
+        "regex": "^\\s+error.*",
+        "action": "Print",
+        "fore": "RED"
+    },
+    {
+        "regex": ".*",
+        "action": "Print",
+        "fore": "YELLOW"
+    }
+]

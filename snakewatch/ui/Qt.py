@@ -19,8 +19,5 @@ class QtHandler(UIHandler):
     def int_callback(self, error):
         pass
     
-    def match_config_entry(self, line):
-        pass
-    
     def quit(self):
         super(QtHandler, self).quit()

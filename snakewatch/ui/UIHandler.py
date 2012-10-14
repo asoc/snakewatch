@@ -4,7 +4,7 @@ import input_type
 
 __AF_ERR = 'Abstract UIHandler functions cannot be called directly.'
 
-class UIHandler:
+class UIHandler(object):
     __metaclass__ = ABCMeta
     
     def __init__(self, *args):
@@ -28,10 +28,6 @@ class UIHandler:
     
     @abstractmethod
     def int_callback(self, error):
-        raise RuntimeError(__AF_ERR)
-    
-    @abstractmethod
-    def match_config_entry(self, line):
         raise RuntimeError(__AF_ERR)
     
     @abstractmethod

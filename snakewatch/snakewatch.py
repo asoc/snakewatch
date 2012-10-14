@@ -12,6 +12,7 @@ import argparse
 # Program modules
 import ui
 import input_type
+import config
 
 NAME = 'snakewatch'
 VERSION = '0.1.dev'
@@ -41,6 +42,12 @@ def main(args):
         '-c', '--config', 
         help='which configuration file to use'
     )
+    parser.add_argument(
+        '-n', '--lines',
+        default=0, type=int,
+        help='start LINES from end of the file, ' \
+             'use -1 to start at the beginning',
+    )
     
     watch_loc_group = parser.add_mutually_exclusive_group()
     watch_loc_group.add_argument(
@@ -65,7 +72,7 @@ def main(args):
     if args.read:
         input = input_type.STDInput()
     elif args.watch is not None:
-        input = input_type.FileInput(args.watch)
+        input = input_type.FileInput(args.watch, args.lines)
     else:
         input = None
     
