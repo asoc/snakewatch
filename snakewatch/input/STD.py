@@ -1,18 +1,30 @@
+import sys
+
 from _Input import Input
 
 class STDInput(Input):
     def __init__(self):
-        pass
+        self.closed = True
     
     def name(self):
         return 'stdin'
     
     def open(self):
-        pass
+        self.closed = False
     
     def watch(self, started_callback, output_callback, int_callback):
-        pass
+        self.open()
+        started_callback()
+        
+        while not self.closed:
+            try:
+                line = sys.stdin.readline()
+                if line != '':
+                    output_callback(line)
+            except:
+                pass
+            
     
     def close(self):
-        pass
+        self.closed = True
     
