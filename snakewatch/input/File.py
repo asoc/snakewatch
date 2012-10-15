@@ -1,7 +1,7 @@
 import os
 import time
 
-from _Input import Input
+from snakewatch.input._Input import Input
 
 class FileInput(Input):
     open_files = []
@@ -48,7 +48,7 @@ class FileInput(Input):
                 if line != '':
                     output_callback(line)
                 else:
-                    time.sleep(1)
+                    time.sleep(0.1)
                     if not self.fp.closed:
                         self.fp.seek(self.where)
     

@@ -10,15 +10,29 @@ import os
 import argparse
 
 # Program modules
-import ui
-import config
-from input import File, STD
+from snakewatch import config
+from snakewatch.input import File, STD
+from snakewatch.ui import Console, Qt
 
 NAME = 'snakewatch'
 VERSION = '0.1.dev'
 DESCRIPTION = '%s v%s\nA log watcher' % (NAME, VERSION)
 
-def main(args):
+def get_handler(console):
+    if not console:
+        try:
+            import PySide
+        except ImportError:
+            print sys.stderr, 'Unable to load PySide library. Please ensure' \
+                              ' it is installed and on your PYTHONPATH or ' \
+                              ' run in console mode.'
+            sys.exit(1)
+        
+        return Qt.QtUI()
+        
+    return Console.ConsoleUI()
+
+def main():
     '''
     Main code entry point
     '''
@@ -60,9 +74,9 @@ def main(args):
         help='read input from stdin'
     )
     
-    args = parser.parse_args(args)
+    args = parser.parse_args(sys.argv[1:])
     
-    handler = ui.get_handler(args.console)
+    handler = get_handler(args.console)
     
     signal.signal(signal.SIGHUP, handler.handle_signal)
     signal.signal(signal.SIGINT, handler.handle_signal)
@@ -80,4 +94,4 @@ def main(args):
     handler.quit()
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

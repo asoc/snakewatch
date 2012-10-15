@@ -1,6 +1,6 @@
 from colorama import Fore, Back, Style
 
-from _Action import Action
+from snakewatch.action._Action import Action
 
 class PrintAction(Action):
     def run_on(self, line):

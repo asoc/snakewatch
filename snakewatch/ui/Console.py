@@ -2,14 +2,12 @@ import sys
 import signal
 from colorama import init as cl_init, deinit as cl_deinit, Fore, Back, Style
 
-from _UI import UI
-from snakewatch import NAME
-import input_type
-import config
+from snakewatch.ui._UI import UI
+from snakewatch import config
 
 _PREPEND_MSG = '\n%(reset)s *** [%(dim)s%(name)s%(reset)s] ' % {
     'reset': Style.RESET_ALL, 'dim': Style.DIM, 
-    'name': NAME,
+    'name': 'snakewatch',
 }
 
 _NOTICE_CLR = Fore.GREEN + Style.DIM

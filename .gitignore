@@ -10,3 +10,5 @@ lib
 .pydevproject
 build
 tags
+dist
+*.egg-info

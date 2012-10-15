@@ -1,6 +1,6 @@
 import sys
 
-from _Input import Input
+from snakewatch.input._Input import Input
 
 class STDInput(Input):
     def __init__(self):

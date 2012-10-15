@@ -18,7 +18,7 @@ class Config(object):
     def check_actions(self):
         for entry in self.cfg:
             name = entry['action']
-            module = importlib.import_module('action.%s' % name) 
+            module = importlib.import_module('snakewatch.action.%s' % name) 
             
             if name not in Config.available_actions:
                 action = '%sAction' % name

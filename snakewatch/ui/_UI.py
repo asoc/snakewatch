@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
 
-from input import File
+from snakewatch.input import File
 
 __AF_ERR = 'Abstract UIHandler functions cannot be called directly.'
 
