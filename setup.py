@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+import ez_setup
+ez_setup.use_setuptools()
+
 import os
 from setuptools import setup
 
@@ -14,12 +17,12 @@ setup(
     author_email = 'alex.honeywell@gmail.com',
     
     url = 'http://bitbucket.org/asoc/snakewatch',
-    description = "A Python log watcher",
+    description = 'A Python log watcher',
     keywords = 'log, tail',
-    long_description = read('README'),
+    long_description = read('README.txt'),
 
     packages = ['snakewatch', 'snakewatch.ui', 'snakewatch.input', 'snakewatch.action'],
-    install_requires = ['colorama',],
+    install_requires = ['colorama', 'importlib', 'json', 'argparse'],
     
     entry_points = {
         'console_scripts': [
@@ -29,6 +32,14 @@ setup(
 
     license = 'LGPL',
     classifiers = [
-        'Development Status :: 2 - Press-Alpha',
+        'Development Status :: 2 - Pre-Alpha',
+        'Environment :: Console',
+        'Environment :: X11 Applications :: Qt',
+        'Intended Audience :: Developers',
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: GNU Library or Lesser General Public License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Topic :: System :: Logging',
     ]
 )
