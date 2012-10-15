@@ -18,7 +18,7 @@ class Config(object):
     def check_actions(self):
         for entry in self.cfg:
             name = entry['action']
-            module = importlib.import_module('actions.%s' % name) 
+            module = importlib.import_module('action.%s' % name) 
             
             if name not in Config.available_actions:
                 action = '%sAction' % name
@@ -37,7 +37,9 @@ class Config(object):
 
 class DefaultConfig(Config):
     def __init__(self):
-        user_default = os.path.expanduser(os.path.join('~', '.snakewatch', 'default.json'))
+        user_default = os.path.expanduser(os.path.join(
+            '~', '.snakewatch', 'default.json'
+        ))
         if os.path.exists(user_default):
             cfg = user_default
         else:

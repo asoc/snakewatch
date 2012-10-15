@@ -1,10 +1,10 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
 
-import input_type
+from input import File
 
 __AF_ERR = 'Abstract UIHandler functions cannot be called directly.'
 
-class UIHandler(object):
+class UI(object):
     __metaclass__ = ABCMeta
     
     def __init__(self, *args):
@@ -32,5 +32,5 @@ class UIHandler(object):
     
     @abstractmethod
     def quit(self):
-        for fp in input_type.FileInput.open_files:
+        for fp in File.FileInput.open_files:
             fp.close()

@@ -2,7 +2,7 @@ import sys
 import signal
 from colorama import init as cl_init, deinit as cl_deinit, Fore, Back, Style
 
-from UIHandler import UIHandler
+from _UI import UI
 from snakewatch import NAME
 import input_type
 import config
@@ -14,9 +14,9 @@ _PREPEND_MSG = '\n%(reset)s *** [%(dim)s%(name)s%(reset)s] ' % {
 
 _NOTICE_CLR = Fore.GREEN + Style.DIM
 
-class ConsoleHandler(UIHandler):
+class ConsoleUI(UI):
     def __init__(self, *args):
-        super(ConsoleHandler, self).__init__(args)
+        super(ConsoleUI, self).__init__(args)
         self.received_interrupt = False
         self.watching = False
         self.input = None
@@ -37,25 +37,35 @@ class ConsoleHandler(UIHandler):
             self.cfg = config.DefaultConfig()
             self.print_ntc('No config provided, using default')
         else:
-            self.cfg = config.Config(start_config)
-#            try:
-#            except Exception as err:
-#                self.print_err('Error in config script %s\n%s' % (start_config, err))
-#                self.quit()
+            try:
+                self.cfg = config.Config(start_config)
+            except Exception as err:
+                self.print_err('Error in config script %s\n%s' % (
+                    start_config, err
+                ))
+                self.quit()
         
         self.input = start_input
         self.watching = True
-        self.input.watch(self.started_callback, self.output_callback, self.int_callback)
+        self.input.watch(
+            self.started_callback, 
+            self.output_callback, 
+            self.int_callback
+        )
     
     def started_callback(self):
         if not self.watching:
             self.print_ntc('Watch resuming on %s' % self.input.name())
         else:
-            self.print_ntc('(press Ctrl-C to stop) Watching %s' % self.input.name())
+            self.print_ntc('(press Ctrl-C to stop) Watching %s' % 
+                self.input.name()
+            )
         
     def output_callback(self, line):
         self.watching = True
-        print self.cfg.match(line),
+        output = self.cfg.match(line)
+        if output:
+            print output,
         
     def int_callback(self, error):
         if self.watching:
@@ -73,7 +83,7 @@ class ConsoleHandler(UIHandler):
         if self.received_interrupt:
             self.print_err('Received interrupt, quitting')
             
-        super(ConsoleHandler, self).quit()
+        super(ConsoleUI, self).quit()
         cl_deinit()
         sys.exit()
     
@@ -94,7 +104,10 @@ class ConsoleHandler(UIHandler):
         print ''
     
     def print_err(self, msg):
-        prep = '%s%s' % (_PREPEND_MSG, (Style.RESET_ALL + Fore.RED + Style.BRIGHT))
+        prep = '%s%s' % (
+            _PREPEND_MSG, 
+            (Style.RESET_ALL + Fore.RED + Style.BRIGHT)
+        )
         try:
             msg = msg.replace('\n', prep)
         except AttributeError:

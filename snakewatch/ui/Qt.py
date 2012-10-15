@@ -1,8 +1,8 @@
-from UIHandler import UIHandler
+from _UI import UI
 
-class QtHandler(UIHandler):
+class QtUI(UI):
     def __init__(self, *args):
-        super(QtHandler, self).__init__(args)
+        super(QtUI, self).__init__(args)
         
     def run(self, start_input, start_config):
         pass

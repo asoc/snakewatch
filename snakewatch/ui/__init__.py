@@ -12,6 +12,6 @@ def get_handler(console):
                               ' run in console mode.'
             sys.exit(1)
         
-        return Qt.QtHandler()
+        return Qt.QtUI()
         
-    return Console.ConsoleHandler()
+    return Console.ConsoleUI()

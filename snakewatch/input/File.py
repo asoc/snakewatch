@@ -1,27 +1,9 @@
-from abc import ABCMeta, abstractmethod, abstractproperty
 import os
 import time
 
-class _Input():
-    __metaclass__ = ABCMeta
-    
-    @abstractproperty
-    def name(self):
-        return None
-    
-    @abstractmethod
-    def open(self):
-        pass
-    
-    @abstractmethod
-    def watch(self, started_callback, output_callback, int_callback):
-        pass
-    
-    @abstractmethod
-    def close(self):
-        pass
+from _Input import Input
 
-class FileInput(_Input):
+class FileInput(Input):
     open_files = []
     
     def __init__(self, filename, readback=0):
@@ -90,19 +72,3 @@ class FileInput(_Input):
             if self.fp in FileInput.open_files:
                 FileInput.open_files.remove(self.fp)
         
-class STDInput(_Input):
-    def __init__(self):
-        pass
-    
-    def name(self):
-        return 'stdin'
-    
-    def open(self):
-        pass
-    
-    def watch(self, started_callback, output_callback, int_callback):
-        pass
-    
-    def close(self):
-        pass
-    

@@ -11,8 +11,8 @@ import argparse
 
 # Program modules
 import ui
-import input_type
 import config
+from input import File, STD
 
 NAME = 'snakewatch'
 VERSION = '0.1.dev'
@@ -70,9 +70,9 @@ def main(args):
     signal.signal(signal.SIGTERM, handler.handle_signal)
     
     if args.read:
-        input = input_type.STDInput()
+        input = STD.STDInput()
     elif args.watch is not None:
-        input = input_type.FileInput(args.watch, args.lines)
+        input = File.FileInput(args.watch, args.lines)
     else:
         input = None
     
