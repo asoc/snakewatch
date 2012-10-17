@@ -1,3 +1,20 @@
+'''
+This file is part of snakewatch.
+
+snakewatch is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+snakewatch is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
+'''
+
 import os
 import time
 
@@ -49,13 +66,13 @@ class FileInput(Input):
                     output_callback(line)
                 else:
                     time.sleep(0.1)
-                    if not self.fp.closed:
-                        self.fp.seek(self.where)
     
     def readline(self, int_callback):
         try:
-            os.stat(self.filename)
+            fs = os.stat(self.filename)
             self.where = self.fp.tell()
+            if fs.st_size < self.where:
+                self.fp.seek(0)
             line = self.fp.readline()
         except Exception as err:
             int_callback(err)

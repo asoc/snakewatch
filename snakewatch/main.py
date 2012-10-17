@@ -1,7 +1,19 @@
 '''
-Python Tail'er
+This file is part of snakewatch.
+
+snakewatch is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+snakewatch is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 '''
-#!/usr/bin/env python
 
 # System modules
 import sys
@@ -10,13 +22,9 @@ import os
 import argparse
 
 # Program modules
-from snakewatch import config
+from snakewatch import config, NAME, VERSION, DESCRIPTION
 from snakewatch.input import File, STD
 from snakewatch.ui import Console, Qt
-
-NAME = 'snakewatch'
-VERSION = '0.1.dev'
-DESCRIPTION = '%s v%s\nA log watcher' % (NAME, VERSION)
 
 def get_handler(console):
     if not console:
@@ -33,10 +41,6 @@ def get_handler(console):
     return Console.ConsoleUI()
 
 def main():
-    '''
-    Main code entry point
-    '''
-    
     parser = argparse.ArgumentParser(
         prog=NAME,
         description=DESCRIPTION,
@@ -78,10 +82,12 @@ def main():
     
     handler = get_handler(args.console)
     
-    signal.signal(signal.SIGHUP, handler.handle_signal)
+    if not sys.platform.startswith('win'): 
+        signal.signal(signal.SIGHUP, handler.handle_signal)
+        signal.signal(signal.SIGQUIT, handler.handle_signal)
     signal.signal(signal.SIGINT, handler.handle_signal)
-    signal.signal(signal.SIGQUIT, handler.handle_signal)
     signal.signal(signal.SIGTERM, handler.handle_signal)
+    signal.signal(signal.SIGABRT, handler.handle_signal)
     
     if args.read:
         input = STD.STDInput()

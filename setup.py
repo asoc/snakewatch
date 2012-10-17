@@ -6,23 +6,25 @@ ez_setup.use_setuptools()
 import os
 from setuptools import setup
 
+from snakewatch import NAME, VERSION, DESCRIPTION, URL, AUTHOR, AUTHOR_EMAIL
+
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
-    name = 'snakewatch',
-    version = '0.1.dev',
+    name = NAME,
+    version = VERSION,
     
-    author = 'Alex Honeywell',
-    author_email = 'alex.honeywell@gmail.com',
+    author = AUTHOR,
+    author_email = AUTHOR_EMAIL,
     
-    url = 'http://bitbucket.org/asoc/snakewatch',
-    description = 'A Python log watcher',
+    url = URL,
+    description = DESCRIPTION,
     keywords = 'log, tail',
     long_description = read('README.txt'),
 
     packages = ['snakewatch', 'snakewatch.ui', 'snakewatch.input', 'snakewatch.action'],
-    install_requires = ['colorama', 'importlib', 'json', 'argparse'],
+    install_requires = ['colorama',],
     
     entry_points = {
         'console_scripts': [
