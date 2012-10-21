@@ -19,7 +19,6 @@ import sys
 import signal
 from colorama import init as cl_init, deinit as cl_deinit, Fore, Back, Style
 
-from snakewatch.ui._UI import UI
 from snakewatch import config
 
 _PREPEND_MSG = '\n%(reset)s *** [%(dim)s%(name)s%(reset)s] ' % {
@@ -29,7 +28,7 @@ _PREPEND_MSG = '\n%(reset)s *** [%(dim)s%(name)s%(reset)s] ' % {
 
 _NOTICE_CLR = Fore.GREEN + Style.DIM
 
-class ConsoleUI(UI):
+class ConsoleUI():
     def __init__(self, *args):
         super(ConsoleUI, self).__init__(args)
         self.received_interrupt = False
@@ -97,8 +96,7 @@ class ConsoleUI(UI):
     def quit(self):
         if self.received_interrupt:
             self.print_err('Received interrupt, quitting')
-            
-        super(ConsoleUI, self).quit()
+        
         cl_deinit()
         sys.exit()
     

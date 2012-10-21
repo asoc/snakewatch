@@ -97,7 +97,7 @@ def main():
         input = None
     
     handler.run(input, args.config)
-    handler.quit()
+    File.FileInput.close_all()
 
 if __name__ == '__main__':
     main()

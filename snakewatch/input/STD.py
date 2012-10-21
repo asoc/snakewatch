@@ -41,6 +41,7 @@ class STDInput(Input):
             except:
                 pass
             
+            self.process_pipe()
     
     def close(self):
         self.closed = True

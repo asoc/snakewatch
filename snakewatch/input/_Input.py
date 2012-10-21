@@ -20,6 +20,20 @@ from abc import ABCMeta, abstractmethod, abstractproperty
 class Input():
     __metaclass__ = ABCMeta
     
+    def connect_process(self, pipe):
+        self.pipe = pipe
+        
+    def process_pipe(self):
+        if self.pipe is not None:
+            signal = None
+            try:
+                if self.pipe.poll():
+                    signal = self.pipe.recv()
+            except Exception:
+                pass
+            if signal == 'close':
+                self.close()
+    
     @abstractproperty
     def name(self):
         return None

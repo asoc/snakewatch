@@ -23,11 +23,12 @@ from snakewatch.input._Input import Input
 class FileInput(Input):
     open_files = []
     
-    def __init__(self, filename, readback=0):
+    def __init__(self, filename, readback=0, pipe=None):
         self.filename = filename
         self.readback = readback
         self.reopen = True
         self.has_opened = False
+        self.pipe = pipe
         self.fp = None
         self.where = 0
     
@@ -40,7 +41,7 @@ class FileInput(Input):
             self.has_opened = True
             if self.readback > -1:
                 self.fp.seek(0, os.SEEK_END)
-                if self.readback > 0: 
+                if self.readback > 0:
                     while self.readback > 0:
                         if self.fp.read(1) == '\n':
                             self.readback -= 1
@@ -48,7 +49,7 @@ class FileInput(Input):
                     self.fp.seek(2, os.SEEK_CUR)
         if self.fp not in FileInput.open_files:
             FileInput.open_files.append(self.fp)
-    
+                
     def watch(self, started_callback, output_callback, int_callback):
         while self.reopen:
             try:
@@ -61,11 +62,14 @@ class FileInput(Input):
             
             while self.fp is not None and isinstance(self.fp, file) and \
                     not self.fp.closed:
+                
                 line = self.readline(int_callback)
                 if line != '':
                     output_callback(line)
                 else:
                     time.sleep(0.1)
+                    
+                self.process_pipe()
     
     def readline(self, int_callback):
         try:
@@ -88,4 +92,8 @@ class FileInput(Input):
             self.fp.close()
             if self.fp in FileInput.open_files:
                 FileInput.open_files.remove(self.fp)
-        
+    
+    @classmethod
+    def close_all(cls):
+        for fi in FileInput.open_files:
+            fi.close()
