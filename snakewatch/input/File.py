@@ -37,6 +37,7 @@ class FileInput(Input):
     
     def open(self, output_callback, int_callback):
         self.fp = open(self.filename, 'r')
+        
         if not self.has_opened:
             self.has_opened = True
             if self.readback > -1:

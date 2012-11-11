@@ -21,7 +21,6 @@ import time
 import logging
 import pkgutil
 import importlib
-from multiprocessing import Process, Queue, Pipe
 
 from PySide.QtGui import *
 from PySide.QtCore import *
@@ -30,87 +29,9 @@ from snakewatch import NAME, VERSION, LOG_FILE, SysToLogging
 from snakewatch import config
 from snakewatch import action as action_module
 from snakewatch.input import File
-from snakewatch.ui._Qt_Worker import CoordSig, WorkerSig, Worker
+from snakewatch.ui._Qt_WorkerCoord import WorkerCoord, WorkerEvent
+from snakewatch.ui._Qt_Worker import WorkerSig
 
-class Event(QEvent):
-    EVENT_TYPE = QEvent.Type(QEvent.registerEventType())
-    
-    def __init__(self, callback):
-        super(Event, self).__init__(Event.EVENT_TYPE)
-        self.callback = callback
-
-class WorkerCoord(QThread):
-    workers = {}
-    finished_worker_pipes = {}
-    
-    def __init__(self, parent):
-        super(WorkerCoord, self).__init__()
-        self.parent = parent
-        self.event_queue = Queue()
-        self.logger = logging.getLogger('WorkerCoord')
-    
-    def run(self):
-        self.logger.info('Starting queue poll loop')
-        while True:
-            queue_data = self.event_queue.get()
-            if queue_data is None:
-                break
-            def callback():
-                self.parent.watcher_update(queue_data)
-            QCoreApplication.postEvent(self.parent, Event(callback))
-        self.logger.info('Exiting queue poll loop')
-    
-    def stop_workers(self):
-        self.event_queue.put(None)
-        self.logger.info('Sending kill signal to all workers')
-        
-        for p_id in WorkerCoord.workers.keys():
-            self.stop_worker(p_id)
-        
-        self.logger.info('Done')
-            
-    def start_worker(self, pid):
-        try:
-            worker = WorkerCoord.workers[pid]
-        except KeyError:
-            return
-        
-        worker.send_pipe.send(CoordSig.Start)
-        
-    def stop_worker(self, pid=None):
-        if pid is not None:
-            try:
-                worker = WorkerCoord.workers.pop(pid)
-            except KeyError:
-                return
-            
-            self.logger.info('Sending kill signal to worker PID %d' % pid)
-            worker.send_pipe.send(CoordSig.Kill)
-            WorkerCoord.finished_worker_pipes[pid] = worker.send_pipe
-            
-    def close_worker(self, pid):
-        try:
-            pipe = WorkerCoord.finished_worker_pipes.pop(pid)
-        except KeyError:
-            pass
-        else:
-            pipe.close()
-            
-    def spawn_worker(self, input_type, cfg=None, **kwargs):
-        if cfg is None:
-            cfg = config.DefaultConfig()
-            
-        for override in self.parent.action_overrides:
-            for i in range(0, len(cfg.actions)):
-                if cfg.actions[i].name != override.title():
-                    continue
-                override_action = self.parent.action_overrides[override]
-                cfg.actions[i] = override_action(cfg.actions[i].raw_cfg)
-                
-        worker = Worker(self.event_queue, input_type, cfg, **kwargs)
-        WorkerCoord.workers[worker.pid] = worker
-        return worker
-    
 class QtUI(QMainWindow):
     def __init__(self, *args):
         self.app = QApplication([])
@@ -132,9 +53,9 @@ class QtUI(QMainWindow):
         
         self.action_overrides = {}
         for imp, name, ispkg in pkgutil.iter_modules(action_module.__path__):
-            if ispkg or not name.startswith('_QT_'):
+            if ispkg or not name.startswith('_Qt_'):
                 continue
-            action = name.split('_QT_')[1]
+            action = name.split('_Qt_')[1]
             module = importlib.import_module('snakewatch.action.%s' % name)
             action_callable = '%sAction' % action
             self.action_overrides[action] = getattr(module, action_callable)
@@ -189,7 +110,8 @@ class QtUI(QMainWindow):
         mb.addMenu(watch_menu)
     
     def customEvent(self, event):
-        event.callback()
+        if isinstance(event, WorkerEvent):
+            self.watcher_update(event.data)
     
     def new_watch_tab(self, pid, title):
         tab = QTextBrowser()

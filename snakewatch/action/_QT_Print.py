@@ -15,6 +15,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import cgi
 import re
 
 from snakewatch.action._Action import Action
@@ -50,4 +51,6 @@ class PrintAction(Action):
         self.style = style
         
     def run_on(self, line):
-        return '<span style="%s">%s</span><br />' % (self.style, line)
+        return '<span style="%s">%s</span><br />' % (
+            self.style, cgi.escape(line)
+        )

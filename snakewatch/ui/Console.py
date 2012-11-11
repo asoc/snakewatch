@@ -15,6 +15,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import os
 import sys
 import signal
 from colorama import init as cl_init, deinit as cl_deinit, Fore, Back, Style
@@ -65,7 +66,7 @@ class ConsoleUI():
             self.output_callback, 
             self.int_callback
         )
-    
+        
     def started_callback(self):
         if not self.watching:
             self.print_ntc('Watch resuming on %s' % self.input.name())

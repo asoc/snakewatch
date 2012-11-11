@@ -18,13 +18,14 @@ along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 import sys
 import os
 import logging
-from multiprocessing import Process, Pipe, Queue
+from multiprocessing import Process, Pipe
 
 from snakewatch import enum, LOG_FILE, LOG_LEVEL
 
 CoordSig = enum(
     'Kill', 'Start', 'Pause'
 )
+
 WorkerSig = enum(
     'Inited', 'Started', 'Output', 'Interrupt', 'Waiting', 'Finished'
 )

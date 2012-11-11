@@ -34,7 +34,7 @@ def get_handler(console):
         except ImportError:
             print sys.stderr, 'Unable to load PySide library. Please ensure' \
                               ' it is installed and on your PYTHONPATH or' \
-                              ' run in console mode.'
+                              ' run snakewatch in console mode.'
             sys.exit(1)
         
         return Qt.QtUI()
@@ -87,6 +87,8 @@ def main():
     if not sys.platform.startswith('win'): 
         signal.signal(signal.SIGHUP, handler.handle_signal)
         signal.signal(signal.SIGQUIT, handler.handle_signal)
+    else:
+        signal.signal(signal.CTRL_C_EVENT, handler.handle_signal)
     signal.signal(signal.SIGINT, handler.handle_signal)
     signal.signal(signal.SIGTERM, handler.handle_signal)
     signal.signal(signal.SIGABRT, handler.handle_signal)

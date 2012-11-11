@@ -37,8 +37,10 @@ class Config(object):
             fp = open(cfg, 'r')
             self.cfg = json.load(fp)
             fp.close()
+            self.source = cfg
         elif isinstance(cfg, list):
             self.cfg = cfg
+            self.source = 'default'
         self.actions = []
         self.cfg = lower_keys(self.cfg)
         self.check_actions()
