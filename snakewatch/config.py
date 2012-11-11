@@ -19,6 +19,8 @@ import json
 import os
 import importlib
 
+from snakewatch import USER_PATH
+
 class Config(object):
     available_actions = {}
     
@@ -54,9 +56,7 @@ class Config(object):
 
 class DefaultConfig(Config):
     def __init__(self):
-        user_default = os.path.expanduser(os.path.join(
-            '~', '.snakewatch', 'default.json'
-        ))
+        user_default = os.path.join(USER_PATH, 'default.json')
         if os.path.exists(user_default):
             cfg = user_default
         else:

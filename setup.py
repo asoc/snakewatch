@@ -25,7 +25,8 @@ setup(
 
     packages = ['snakewatch', 'snakewatch.ui', 'snakewatch.input', 'snakewatch.action'],
     install_requires = ['colorama',],
-    
+
+    app = ['Snakewatch.app',],
     entry_points = {
         'console_scripts': [
             'snakewatch = snakewatch.main:main',

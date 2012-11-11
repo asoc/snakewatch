@@ -17,23 +17,23 @@ along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import time
+import logging
 
 from snakewatch.input._Input import Input
 
 class FileInput(Input):
     open_files = []
     
-    def __init__(self, filename, readback=0, pipe=None):
+    def __init__(self, filename, readback=0):
         self.filename = filename
         self.readback = readback
         self.reopen = True
         self.has_opened = False
-        self.pipe = pipe
         self.fp = None
         self.where = 0
     
     def name(self):
-        return self.filename
+        return os.path.basename(self.filename)
     
     def open(self, output_callback, int_callback):
         self.fp = open(self.filename, 'r')
@@ -55,7 +55,8 @@ class FileInput(Input):
             try:
                 self.open(output_callback, int_callback)
             except Exception as err:
-                int_callback('%s\n%s' % (self.filename, err))
+                msg = '%s\n%s' % (self.filename, err)
+                int_callback()
                 time.sleep(1)
             else:
                 started_callback()
@@ -66,10 +67,9 @@ class FileInput(Input):
                 line = self.readline(int_callback)
                 if line != '':
                     output_callback(line)
+                    time.sleep(0.03)
                 else:
                     time.sleep(0.1)
-                    
-                self.process_pipe()
     
     def readline(self, int_callback):
         try:
@@ -85,10 +85,10 @@ class FileInput(Input):
             return line
     
     def close(self):
+        self.reopen = False
         if self.fp is None:
             return
         if isinstance(self.fp, file):
-            self.reopen = False
             self.fp.close()
             if self.fp in FileInput.open_files:
                 FileInput.open_files.remove(self.fp)

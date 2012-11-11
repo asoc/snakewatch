@@ -30,7 +30,6 @@ _NOTICE_CLR = Fore.GREEN + Style.DIM
 
 class ConsoleUI():
     def __init__(self, *args):
-        super(ConsoleUI, self).__init__(args)
         self.received_interrupt = False
         self.watching = False
         self.input = None
@@ -97,6 +96,7 @@ class ConsoleUI():
         if self.received_interrupt:
             self.print_err('Received interrupt, quitting')
         
+        print Style.RESET_ALL,
         cl_deinit()
         sys.exit()
     

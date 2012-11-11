@@ -20,9 +20,11 @@ import sys
 import signal
 import os
 import argparse
+import logging
 
 # Program modules
-from snakewatch import config, NAME, VERSION, DESCRIPTION
+from snakewatch import config, NAME, VERSION, DESCRIPTION, \
+                       LOG_FILE, LOG_FORMAT, LOG_LEVEL
 from snakewatch.input import File, STD
 from snakewatch.ui import Console, Qt
 
@@ -32,7 +34,7 @@ def get_handler(console):
             import PySide
         except ImportError:
             print sys.stderr, 'Unable to load PySide library. Please ensure' \
-                              ' it is installed and on your PYTHONPATH or ' \
+                              ' it is installed and on your PYTHONPATH or' \
                               ' run in console mode.'
             sys.exit(1)
         
@@ -80,6 +82,7 @@ def main():
     
     args = parser.parse_args(sys.argv[1:])
     
+    logging.debug('%s\n' % ('=' * 40))
     handler = get_handler(args.console)
     
     if not sys.platform.startswith('win'): 
@@ -96,8 +99,17 @@ def main():
     else:
         input = None
     
-    handler.run(input, args.config)
+    try:
+        handler.run(input, args.config)
+    except Exception as err:
+        if not args.console:
+            logging.exception('Fatal Exception Occurred')
+        else:
+            import traceback
+            traceback.print_exc()
+        
     File.FileInput.close_all()
+    logging.debug('snakewatch exiting\n')
 
 if __name__ == '__main__':
     main()
