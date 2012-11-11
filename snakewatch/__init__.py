@@ -28,7 +28,7 @@ AUTHOR_EMAIL = 'alex.honeywell@gmail.com',
 USER_PATH = os.path.expanduser(os.path.join('~', '.snakewatch'))
 
 LOG_FILE = os.path.join(USER_PATH, 'snakewatch.log')
-LOG_FORMAT = '%(asctime)-15s [%(levelname)s] %(module)s.%(lineno)d.%(funcName)s: %(message)s'
+#LOG_FORMAT = '%(asctime)-15s [%(levelname)s] %(module)s.%(lineno)d.%(funcName)s: %(message)s'
 LOG_LEVEL = logging.DEBUG
 
 #_stat = os.stat(LOG_FILE)
@@ -38,13 +38,20 @@ LOG_LEVEL = logging.DEBUG
 #        os.unlink(_rollover)
 #    os.rename(LOG_FILE, _rollover)
 
-logging.basicConfig(filename=LOG_FILE, format=LOG_FORMAT, level=LOG_LEVEL)
+logging.basicConfig(filename=LOG_FILE, level=LOG_LEVEL)#, format=LOG_FORMAT)
+
+def enum(*sequential, **named):
+    enums = dict(zip(sequential, range(len(sequential))), **named)
+    return type('Enum', (), enums)
 
 class SysToLogging(object):
     def __init__(self, log_level):
         self.log_level = log_level
         self.linebuf = ''
-        
+    
+    def flush(self):
+        pass
+    
     def write(self, buf):
         for line in buf.rstrip().splitlines():
             logging.log(self.log_level, line.rstrip())

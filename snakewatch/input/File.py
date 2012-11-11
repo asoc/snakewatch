@@ -50,24 +50,27 @@ class FileInput(Input):
         if self.fp not in FileInput.open_files:
             FileInput.open_files.append(self.fp)
                 
-    def watch(self, started_callback, output_callback, int_callback):
+    def watch(self, started_callback, output_callback, int_callback, 
+              poll_callback=None):
         while self.reopen:
             try:
+                if poll_callback is not None:
+                    poll_callback()
                 self.open(output_callback, int_callback)
-            except Exception as err:
-                msg = '%s\n%s' % (self.filename, err)
-                int_callback()
+            except IOError as err:
+                int_callback('%s\n%s' % (self.filename, err))
                 time.sleep(1)
             else:
                 started_callback()
             
             while self.fp is not None and isinstance(self.fp, file) and \
                     not self.fp.closed:
+                if poll_callback is not None:
+                    poll_callback()
                 
                 line = self.readline(int_callback)
                 if line != '':
                     output_callback(line)
-                    time.sleep(0.03)
                 else:
                     time.sleep(0.1)
     
@@ -78,7 +81,7 @@ class FileInput(Input):
             if fs.st_size < self.where:
                 self.fp.seek(0)
             line = self.fp.readline()
-        except Exception as err:
+        except IOError as err:
             int_callback(err)
             return ''
         else:

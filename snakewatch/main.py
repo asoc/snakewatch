@@ -23,8 +23,7 @@ import argparse
 import logging
 
 # Program modules
-from snakewatch import config, NAME, VERSION, DESCRIPTION, \
-                       LOG_FILE, LOG_FORMAT, LOG_LEVEL
+from snakewatch import config, NAME, VERSION, DESCRIPTION
 from snakewatch.input import File, STD
 from snakewatch.ui import Console, Qt
 

@@ -16,29 +16,38 @@ along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 import re
-from colorama import Fore, Back, Style
 
 from snakewatch.action._Action import Action
 
 class PrintAction(Action):
-    non_char = re.compile('[^a-zA-Z]+')
-    styleable = ['fore', 'back', 'style']
+    non_alnum = re.compile('[\W_]+')
+    hex_colour = re.compile('^(?:[0-9a-fA-F]{3}){1,2}$')
+    styleable = ['fore', 'back']
     
     def __init__(self, cfg):
         super(PrintAction, self).__init__(cfg)
+        
         for part in self.styleable:
             if part in self.cfg:
-                self.cfg[part] = self.non_char.sub('', self.cfg[part]).upper()
+                clr = self.non_alnum.sub('', self.cfg[part])
+                if self.hex_colour.match(clr) is not None:
+                    clr = '#%s' % clr
+                self.cfg[part] = clr
                 
-        style = Style.RESET_ALL
-        if 'fore' in self.cfg and hasattr(Fore, self.cfg['fore']):
-            style = '%s%s' % (style, getattr(Fore, self.cfg['fore']))
-        if 'back' in self.cfg and hasattr(Back, self.cfg['back']):
-            style = '%s%s' % (style, getattr(Back, self.cfg['back']))
-        if 'style' in self.cfg and hasattr(Style, self.cfg['style']):
-            style = '%s%s' % (style, getattr(Style, self.cfg['style']))
+        style = ''
+        if 'fore' in self.cfg:
+            style = '%s color: %s;' % (style, self.cfg['fore'])
             
+        if 'back' in self.cfg:
+            style = '%s background-color: %s;' % (style, self.cfg['back'])
+            
+        if 'bold' in self.cfg:
+            style = '%s font-weight: bold;' % style
+        
+        if 'italic' in self.cfg:
+            style = '%s font-style: italic' % style
+        
         self.style = style
         
     def run_on(self, line):
-        return ''.join([self.style, line])
+        return '<span style="%s">%s</span><br />' % (self.style, line)

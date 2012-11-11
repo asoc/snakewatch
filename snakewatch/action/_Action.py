@@ -16,18 +16,20 @@ along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 import re
+import copy
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 class Action(object):
     __metaclass__ = ABCMeta
     
     def __init__(self, cfg):
+        self.raw_cfg = copy.deepcopy(cfg)
         self.cfg = cfg
+        self.pattern = re.compile(self.cfg['regex'])
+        self.name = self.__module__.split('.')[-1:][0]
     
     def matches(self, line):
-        if re.match(self.cfg['regex'], line):
-            return True
-        return False
+        return self.pattern.match(line) is not None
     
     @abstractmethod
     def run_on(self, line):

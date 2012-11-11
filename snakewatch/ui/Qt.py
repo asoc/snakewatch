@@ -19,70 +19,125 @@ import sys
 import os
 import time
 import logging
-import Queue
+import pkgutil
+import importlib
+from multiprocessing import Process, Queue, Pipe
 
 from PySide.QtGui import *
 from PySide.QtCore import *
 
 from snakewatch import NAME, VERSION, LOG_FILE, SysToLogging
 from snakewatch import config
+from snakewatch import action as action_module
 from snakewatch.input import File
-from snakewatch.ui import _Qt_Watch as Watch
-from snakewatch.ui._Qt_Queue import *
+from snakewatch.ui._Qt_Worker import CoordSig, WorkerSig, Worker
 
-class ThreadCoord(QThread):
-    threads = {}
-    stop_thread = Signal(str)
-    destroy_watcher = Signal(str)
+class Event(QEvent):
+    EVENT_TYPE = QEvent.Type(QEvent.registerEventType())
+    
+    def __init__(self, callback):
+        super(Event, self).__init__(Event.EVENT_TYPE)
+        self.callback = callback
+
+class WorkerCoord(QThread):
+    workers = {}
+    finished_worker_pipes = {}
     
     def __init__(self, parent):
-        super(ThreadCoord, self).__init__()
+        super(WorkerCoord, self).__init__()
         self.parent = parent
-        self.destroy_watcher.connect(self.parent.destroy_watcher)
-    
-    def register(self, thread):
-        ThreadCoord.threads[thread.id] = thread
-        self.stop_thread.connect(thread.stop_watching)
-        thread.closed.connect(self.thread_finished)
-    
-    @Slot(str)
-    def thread_finished(self, id):
-        thread = self.threads[id]
-        thread.wait()
-        self.threads.pop(id)
-        self.destroy_watcher.emit(id)
+        self.event_queue = Queue()
+        self.logger = logging.getLogger('WorkerCoord')
     
     def run(self):
+        self.logger.info('Starting queue poll loop')
         while True:
-            callback = event_queue.get()
-            if callback is None:
+            queue_data = self.event_queue.get()
+            if queue_data is None:
                 break
+            def callback():
+                self.parent.watcher_update(queue_data)
             QCoreApplication.postEvent(self.parent, Event(callback))
+        self.logger.info('Exiting queue poll loop')
     
-    def stop(self, id=None):
-        if id is None:
-            event_queue.put(None)
-        self.stop_thread.emit(id)
-        if id is None:
-            self.wait()
+    def stop_workers(self):
+        self.event_queue.put(None)
+        self.logger.info('Sending kill signal to all workers')
+        
+        for p_id in WorkerCoord.workers.keys():
+            self.stop_worker(p_id)
+        
+        self.logger.info('Done')
+            
+    def start_worker(self, pid):
+        try:
+            worker = WorkerCoord.workers[pid]
+        except KeyError:
+            return
+        
+        worker.send_pipe.send(CoordSig.Start)
+        
+    def stop_worker(self, pid=None):
+        if pid is not None:
+            try:
+                worker = WorkerCoord.workers.pop(pid)
+            except KeyError:
+                return
+            
+            self.logger.info('Sending kill signal to worker PID %d' % pid)
+            worker.send_pipe.send(CoordSig.Kill)
+            WorkerCoord.finished_worker_pipes[pid] = worker.send_pipe
+            
+    def close_worker(self, pid):
+        try:
+            pipe = WorkerCoord.finished_worker_pipes.pop(pid)
+        except KeyError:
+            pass
+        else:
+            pipe.close()
+            
+    def spawn_worker(self, input_type, cfg=None, **kwargs):
+        if cfg is None:
+            cfg = config.DefaultConfig()
+            
+        for override in self.parent.action_overrides:
+            for i in range(0, len(cfg.actions)):
+                if cfg.actions[i].name != override.title():
+                    continue
+                override_action = self.parent.action_overrides[override]
+                cfg.actions[i] = override_action(cfg.actions[i].raw_cfg)
+                
+        worker = Worker(self.event_queue, input_type, cfg, **kwargs)
+        WorkerCoord.workers[worker.pid] = worker
+        return worker
     
 class QtUI(QMainWindow):
     def __init__(self, *args):
         self.app = QApplication([])
         self.app.aboutToQuit.connect(self.before_quit)
         
+        self.logger = logging.getLogger('UI')
         sys.stderr = SysToLogging(logging.ERROR)
         sys.stdout = SysToLogging(logging.INFO)
         
         self.watchers = {}
         
-        logging.debug('Application Initialized')
+        self.logger.debug('Application Initialized')
         
         self.initMainWindow()
         self.initMenuBar()
-        logging.debug('UI Init Finished')
+        self.logger.debug('UI Init Finished')
         
-        self.dispatch = ThreadCoord(self)
+        self.coord = WorkerCoord(self)
+        
+        self.action_overrides = {}
+        for imp, name, ispkg in pkgutil.iter_modules(action_module.__path__):
+            if ispkg or not name.startswith('_QT_'):
+                continue
+            action = name.split('_QT_')[1]
+            module = importlib.import_module('snakewatch.action.%s' % name)
+            action_callable = '%sAction' % action
+            self.action_overrides[action] = getattr(module, action_callable)
     
     def initMainWindow(self):
         super(QtUI, self).__init__()
@@ -136,44 +191,56 @@ class QtUI(QMainWindow):
     def customEvent(self, event):
         event.callback()
     
-    #@Slot(str, str, list)
-    def update_watcher(self, id, callback, args):
-        if id not in self.watchers:
-            return False
+    def new_watch_tab(self, pid, title):
+        tab = QTextBrowser()
+        tab.pid = pid
+        tab.closed_by_gui = False
+        self.tabs.addTab(tab, title)
+        self.watchers[pid] = tab
+        return tab
+    
+    def watcher_update(self, queue_data):
+        pid, action, obj = queue_data
         
-        watcher = self.watchers[id]
         
-        if callback == 'output':
-            line = watcher.cfg.match(args[0])
-            if line != '':
-                watcher.append_text(line)
-        elif callback == 'int':
-            logging.error(args[0])
-        elif callback == 'started':
-            self.tabs.setTabText(self.tabs.indexOf(watcher.tab), args[0])
+        if action == WorkerSig.Inited:
+            watch_tab = self.new_watch_tab(pid, obj)
+            self.coord.start_worker(pid)
+            return
+            
+        try:
+            watch_tab = self.watchers[pid]
+        except KeyError:
+            self.coord.stop(pid)
+            return
+        finally:
+            if action == WorkerSig.Finished:
+                self.coord.close_worker(pid)
+                try:
+                    watch_tab = self.watchers.pop(pid)
+                    self.tabs.removeTab(self.tabs.indexOf(watch_tab))
+                except Exception:
+                    pass
+                return
+        
+        if action == WorkerSig.Started:
+            pass
+        if action == WorkerSig.Output:
+            watch_tab.moveCursor(QTextCursor.End)
+            watch_tab.insertHtml(obj)
+        elif action == WorkerSig.Interrupt:
+            logging.error(obj)
     
     @Slot(int)
     def closing_tab(self, index):
         tab = self.tabs.widget(index)
         tab.closed_by_gui = True
-        id = tab.thread_id
-        if id in self.watchers:
-            watcher = self.watchers[id]
-            self.dispatch.stop(id)
+        self.coord.stop_worker(tab.pid)
         self.tabs.removeTab(index)
-        
-    @Slot(str)
-    def destroy_watcher(self, id):
-        if id not in self.watchers:
-            return
-        
-        watcher = self.watchers.pop(id)
-        if not watcher.tab.closed_by_gui:
-            self.tabs.removeTab(self.tabs.indexOf(watcher.tab))
     
     def action_stop_watcher(self):
-        watcher = self.watchers.values()[0]
-        watcher.thread.stop.emit(watcher.id)
+        watcher = self.tabs.currentWidget()
+        self.coord.stop(watcher.pid)
     
     def action_file_open(self):
         filename = QFileDialog.getOpenFileName(self, 'Open File')[0]
@@ -186,39 +253,21 @@ class QtUI(QMainWindow):
             'readback': -1,
         }
         
-        try:
-            thread = Watch.Thread(input_type, self.update_watcher, **kwargs)
-            t_id = str(id(thread))
-            thread.id = t_id
-            
-            self.dispatch.register(thread)
-            
-            tab = Watch.Tab(t_id)
-            coord = Watch.Coord(thread, tab, config.DefaultConfig())
-            self.watchers[t_id] = coord
-            
-            self.tabs.addTab(tab, thread.name())
-            
-            thread.start()
-        except Exception as err:
-            logging.exception('Cannot start watcher')
+        self.coord.spawn_worker(input_type, **kwargs)
         
     def run(self, start_input, start_config):
-        logging.debug('Starting Thread Coordinator')
-        self.dispatch.start()
-        
+        self.coord.start()
         self.show()
         
-        logging.debug("Starting Main Event Loop")
+        self.logger.debug("Starting main event loop")
         self.app.exec_()
     
     def handle_signal(self, signum, frame):
         pass
     
     def before_quit(self):
-        logging.debug('Stopping Thread Coordinator')
-        self.dispatch.stop()
-        self.dispatch.wait()
+        self.coord.stop_workers()
+        self.coord.wait()
             
     def action_file_quit(self):
         self.app.quit()

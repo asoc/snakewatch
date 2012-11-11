@@ -15,11 +15,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import re
 import json
 import os
 import importlib
 
 from snakewatch import USER_PATH
+    
+def lower_keys(x):
+    if isinstance(x, list):
+        return [lower_keys(v) for v in x]
+    if isinstance(x, dict):
+        return dict((k.lower(), lower_keys(v)) for k, v in x.items())
+    return x
 
 class Config(object):
     available_actions = {}
@@ -32,16 +40,19 @@ class Config(object):
         elif isinstance(cfg, list):
             self.cfg = cfg
         self.actions = []
+        self.cfg = lower_keys(self.cfg)
         self.check_actions()
         
     def check_actions(self):
+        ptrn = re.compile('[\W]+')
         for entry in self.cfg:
-            name = entry['action']
+            name = ptrn.sub('', entry['action']).title()
+            entry['action'] = name
             module = importlib.import_module('snakewatch.action.%s' % name) 
             
             if name not in Config.available_actions:
                 action = '%sAction' % name
-                Config.available_actions[name] = getattr(module, action) 
+                Config.available_actions[name] = getattr(module, action)
                 
             self.actions.append(Config.available_actions[name](entry))
         
