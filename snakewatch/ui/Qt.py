@@ -35,6 +35,10 @@ from snakewatch.ui._Qt_Worker import WorkerSig
 class QtUI(QMainWindow):
     def __init__(self, *args):
         self.app = QApplication([])
+        self.app.setOrganizationName('Illogi.ca/l Development')
+        self.app.setOrganizationDomain('illogi.ca')
+        self.app.setApplicationName(NAME.title())
+        self.app.setApplicationVersion(VERSION)
         self.app.aboutToQuit.connect(self.before_quit)
         
         self.logger = logging.getLogger('UI')
@@ -45,6 +49,7 @@ class QtUI(QMainWindow):
         
         self.logger.debug('Application Initialized')
         
+        self.load_settings()
         self.initMainWindow()
         self.initMenuBar()
         self.logger.debug('UI Init Finished')
@@ -60,9 +65,17 @@ class QtUI(QMainWindow):
             action_callable = '%sAction' % action
             self.action_overrides[action] = getattr(module, action_callable)
     
+    def load_settings(self):
+        self.settings = QSettings()
+        
+    
     def initMainWindow(self):
         super(QtUI, self).__init__()
         self.setMinimumSize(600, 400)
+        self.resize(
+            self.settings.value('mainWindow/width', self.minimumWidth()),
+            self.settings.value('mainWindow/height', self.minimumHeight())
+        )
         
         sp = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         
@@ -108,6 +121,16 @@ class QtUI(QMainWindow):
         watch_menu.addAction(action_stop)
         
         mb.addMenu(watch_menu)
+    
+    def warn(self, message, exception=None):
+        if exception is not None:
+            message = '%s\n\n%s' % (message, exception)
+        dialog = QMessageBox(self)
+        dialog.setWindowTitle('Warning')
+        dialog.setText(message)
+        dialog.setWindowModality(Qt.WindowModal)
+        dialog.show()
+        dialog.exec_()
     
     def customEvent(self, event):
         if isinstance(event, WorkerEvent):
@@ -190,6 +213,8 @@ class QtUI(QMainWindow):
     def before_quit(self):
         self.coord.stop_workers()
         self.coord.wait()
+        self.settings.setValue('mainWindow/width', self.width())
+        self.settings.setValue('mainWindow/height', self.height())
             
     def action_file_quit(self):
         self.app.quit()

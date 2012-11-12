@@ -90,7 +90,15 @@ class WorkerCoord(QThread):
             
     def spawn_worker(self, input_type, cfg=None, **kwargs):
         if cfg is None:
-            cfg = config.DefaultConfig()
+            try:
+                cfg = config.DefaultConfig()
+            except Exception as err:
+                self.parent.warn(
+                    'An error exists in the default configuration.\n' \
+                    'Falling back on a blank configuration.',
+                    err
+                )
+                cfg = config.DefaultConfig(False)
             
         for override in self.parent.action_overrides:
             for i in range(0, len(cfg.actions)):

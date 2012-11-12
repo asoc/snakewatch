@@ -68,9 +68,9 @@ class Config(object):
         return line
 
 class DefaultConfig(Config):
-    def __init__(self):
+    def __init__(self, use_file=True):
         user_default = os.path.join(USER_PATH, 'default.json')
-        if os.path.exists(user_default):
+        if use_file and os.path.exists(user_default):
             cfg = user_default
         else:
             cfg = [
