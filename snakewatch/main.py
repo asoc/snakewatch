@@ -23,7 +23,7 @@ import argparse
 import logging
 
 # Program modules
-from snakewatch import config, NAME, VERSION, DESCRIPTION
+from snakewatch import config, NAME, VERSION, DESCRIPTION, LOG_FILE, LOG_LEVEL
 from snakewatch.input import File, STD
 from snakewatch.ui import Console, Qt
 
@@ -32,7 +32,7 @@ def get_handler(console):
         try:
             import PySide
         except ImportError:
-            print sys.stderr, 'Unable to load PySide library. Please ensure' \
+            print >> sys.stderr, 'Unable to load PySide library. Please ensure' \
                               ' it is installed and on your PYTHONPATH or' \
                               ' run snakewatch in console mode.'
             sys.exit(1)
@@ -42,6 +42,18 @@ def get_handler(console):
     return Console.ConsoleUI()
 
 def main():
+    enable_logging = True
+    if not os.path.exists(USER_PATH):
+        try:
+            os.makedirs(USER_PATH)
+        except Exception as err:
+            enable_logging = False
+            print >> sys.stderr, 'Unable to create snakewatch settings/log directory.' \
+                                 'Please create the directory %s' % USER_PATH
+    
+    if enable_logging:
+        logging.basicConfig(filename=LOG_FILE, level=LOG_LEVEL)
+    
     parser = argparse.ArgumentParser(
         prog=NAME,
         description=DESCRIPTION,

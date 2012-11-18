@@ -38,7 +38,7 @@ LOG_LEVEL = logging.DEBUG
 #        os.unlink(_rollover)
 #    os.rename(LOG_FILE, _rollover)
 
-logging.basicConfig(filename=LOG_FILE, level=LOG_LEVEL)#, format=LOG_FORMAT)
+#, format=LOG_FORMAT)
 
 def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)
