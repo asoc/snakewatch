@@ -29,6 +29,7 @@ class FileInput(Input):
         self.readback = readback
         self.reopen = True
         self.has_opened = False
+        self.supress_open_msg = False
         self.fp = None
         self.where = 0
     
@@ -62,7 +63,9 @@ class FileInput(Input):
                 int_callback('%s\n%s' % (self.filename, err))
                 time.sleep(1)
             else:
-                started_callback()
+                if not self.supress_open_msg:
+                    started_callback()
+                self.supress_open_msg = False
             
             while self.fp is not None and isinstance(self.fp, file) and \
                     not self.fp.closed:
@@ -80,7 +83,13 @@ class FileInput(Input):
             fs = os.stat(self.filename)
             self.where = self.fp.tell()
             if fs.st_size < self.where:
-                self.fp.seek(0)
+                # File contents has been truncated, so close and reopen the file
+                self.close()
+                self.readback = -1
+                self.has_opened = False
+                self.reopen = True
+                self.supress_open_msg = True
+                return ''
             line = self.fp.readline()
         except IOError as err:
             int_callback(err)

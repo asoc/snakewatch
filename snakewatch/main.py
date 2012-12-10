@@ -23,9 +23,8 @@ import argparse
 import logging
 
 # Program modules
-from snakewatch import config, NAME, VERSION, DESCRIPTION, LOG_FILE, LOG_LEVEL
+from snakewatch import config, NAME, VERSION, DESCRIPTION, LOG_FILE, LOG_LEVEL, USER_PATH
 from snakewatch.input import File, STD
-from snakewatch.ui import Console, Qt
 
 def get_handler(console):
     if not console:
@@ -37,8 +36,10 @@ def get_handler(console):
                               ' run snakewatch in console mode.'
             sys.exit(1)
         
+        from snakewatch.ui import Qt
         return Qt.QtUI()
         
+    from snakewatch.ui import Console
     return Console.ConsoleUI()
 
 def main():

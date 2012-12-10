@@ -15,6 +15,15 @@ def read(fname):
 main = ['snakewatch/main.py',]
 pyside_packages = ['PySide.QtCore', 'PySide.QtGui',]
 
+required_packages = ['colorama', 'argparse', 'importlib', 'pkgutil',]
+need_to_install = []
+
+for pkg in required_packages:
+    try:
+        __import__(pkg)
+    except ImportError:
+        need_to_install.append(pkg)
+
 if sys.platform.startswith('darwin'):
     extra_options = dict(
         setup_requires = ['py2app',],
@@ -25,6 +34,7 @@ if sys.platform.startswith('darwin'):
         )),
     )
 elif sys.platform.startswith('win'):
+    import py2exe
     extra_options = dict(
         setup_requires = ['py2exe',],
         app = main,
@@ -47,7 +57,7 @@ setup(
     long_description = read('README.txt'),
 
     packages = find_packages(),
-    install_requires = ['colorama',],
+    install_requires = need_to_install,
     
     entry_points = {
         'console_scripts': [
