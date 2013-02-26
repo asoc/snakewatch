@@ -12,5 +12,5 @@ build
 tags
 dist
 *.egg-info
-altgraph-0.10.1-py2.7.egg
-modulegraph-0.10.1-py2.7.egg
+*.egg
+.idea/

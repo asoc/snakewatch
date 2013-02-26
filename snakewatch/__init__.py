@@ -19,7 +19,7 @@ import os
 import logging
 
 NAME = 'snakewatch'
-VERSION = '0.2.dev-1'
+VERSION = '0.2.dev-2'
 DESCRIPTION = '%s v%s\nA log watcher' % (NAME, VERSION)
 URL = 'http://bitbucket.org/asoc/snakewatch'
 AUTHOR = 'Alex Honeywell',
@@ -28,17 +28,11 @@ AUTHOR_EMAIL = 'alex.honeywell@gmail.com',
 USER_PATH = os.path.expanduser(os.path.join('~', '.snakewatch'))
 
 LOG_FILE = os.path.join(USER_PATH, 'snakewatch.log')
-#LOG_FORMAT = '%(asctime)-15s [%(levelname)s] %(module)s.%(lineno)d.%(funcName)s: %(message)s'
+LOG_TO_STDOUT = False
+LOG_FORMAT = '%(asctime)-15s [%(levelname)s] %(name)s: %(message)s'
 LOG_LEVEL = logging.DEBUG
-
-#_stat = os.stat(LOG_FILE)
-#if _stat.st_size > 256000:
-#    _rollover = '%s.1' % LOG_FILE
-#    if os.path.exists(_rollover):
-#        os.unlink(_rollover)
-#    os.rename(LOG_FILE, _rollover)
-
-#, format=LOG_FORMAT)
+LOG_MAX_BYTES = 1024*1024*5
+LOG_BACKUP_COUNT = 1
 
 def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)

@@ -17,61 +17,63 @@ along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import time
-import logging
 
 from snakewatch.input._Input import Input
 
 class FileInput(Input):
-    open_files = []
-    
+    '''An Input that reads from a system file'''
+
     def __init__(self, filename, readback=0):
         self.filename = filename
         self.readback = readback
         self.reopen = True
         self.has_opened = False
-        self.supress_open_msg = False
         self.fp = None
         self.where = 0
     
     def name(self):
         return os.path.basename(self.filename)
     
-    def open(self, output_callback, int_callback):
+    def open(self):
         self.fp = open(self.filename, 'r')
-        
         if not self.has_opened:
             self.has_opened = True
             if self.readback > -1:
                 self.fp.seek(0, os.SEEK_END)
                 if self.readback > 0:
+                    hit_start = False
                     while self.readback > 0:
                         if self.fp.read(1) == '\n':
                             self.readback -= 1
-                        self.fp.seek(-2, os.SEEK_CUR)
-                    self.fp.seek(2, os.SEEK_CUR)
-        if self.fp not in FileInput.open_files:
-            FileInput.open_files.append(self.fp)
-                
-    def watch(self, started_callback, output_callback, int_callback, 
-              poll_callback=None):
+                        try:
+                            self.fp.seek(-2, os.SEEK_CUR)
+                        except IOError:
+                            hit_start = True
+                            break
+
+                    if hit_start:
+                        self.fp.seek(0)
+                    else:
+                        self.fp.seek(2, os.SEEK_CUR)
+
+    def watch(self, started_callback, output_callback, int_callback, poll_callback=None):
         while self.reopen:
             try:
-                if poll_callback is not None:
+                if poll_callback:
                     poll_callback()
-                self.open(output_callback, int_callback)
-            except IOError as err:
+                self.open()
+            except Exception as err:
                 int_callback('%s\n%s' % (self.filename, err))
                 time.sleep(1)
+                self.fp = None
             else:
-                if not self.supress_open_msg:
-                    started_callback()
-                self.supress_open_msg = False
+                started_callback()
             
-            while self.fp is not None and isinstance(self.fp, file) and \
+            while self.fp and isinstance(self.fp, file) and \
                     not self.fp.closed:
-                if poll_callback is not None:
+                if poll_callback:
                     poll_callback()
-                
+
                 line = self.readline(int_callback)
                 if line != '':
                     output_callback(line)
@@ -79,34 +81,36 @@ class FileInput(Input):
                     time.sleep(0.1)
     
     def readline(self, int_callback):
+        '''Read a line from the file.
+
+        If the file has been truncated, or cannot be read from, close the file handle,
+        set the readback to start at the beginning, and let the watcher re-open the file.
+        '''
         try:
             fs = os.stat(self.filename)
             self.where = self.fp.tell()
             if fs.st_size < self.where:
                 # File contents has been truncated, so close and reopen the file
-                self.close()
-                self.readback = -1
-                self.has_opened = False
-                self.reopen = True
-                self.supress_open_msg = True
+                self.re_open()
                 return ''
             line = self.fp.readline()
-        except IOError as err:
-            int_callback(err)
+        except Exception as err:
+            int_callback('%s\n%s' % (self.filename, err))
+            self.re_open()
             return ''
         else:
             return line
-    
+
+    def re_open(self):
+        self.close()
+        self.readback = -1
+        self.has_opened = False
+        self.reopen = True
+
     def close(self):
         self.reopen = False
-        if self.fp is None:
+        if not self.fp:
             return
         if isinstance(self.fp, file):
             self.fp.close()
-            if self.fp in FileInput.open_files:
-                FileInput.open_files.remove(self.fp)
-    
-    @classmethod
-    def close_all(cls):
-        for fi in FileInput.open_files:
-            fi.close()
+        self.fp = None

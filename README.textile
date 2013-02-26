@@ -1,0 +1,7 @@
+A log watcher written in Python
+
+Allows RegEx-based line matching for various actions.
+Currently supported actions:
+
+* Print (with colours!)
+* Ignore

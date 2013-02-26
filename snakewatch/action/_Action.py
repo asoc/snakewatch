@@ -15,11 +15,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from __future__ import print_function
+
 import re
 import copy
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
+
 
 class Action(object):
+    '''Base class for all Actions'''
+
     __metaclass__ = ABCMeta
     
     def __init__(self, cfg):
@@ -33,4 +38,4 @@ class Action(object):
     
     @abstractmethod
     def run_on(self, line):
-        print ''
+        print()

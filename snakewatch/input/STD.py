@@ -19,7 +19,10 @@ import sys
 
 from snakewatch.input._Input import Input
 
+
 class STDInput(Input):
+    '''Input handler for sys.stdin'''
+
     def __init__(self):
         self.closed = True
     
@@ -45,4 +48,3 @@ class STDInput(Input):
     
     def close(self):
         self.closed = True
-    

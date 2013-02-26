@@ -17,6 +17,8 @@ along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 
 from snakewatch.action._Action import Action
 
+
 class IgnoreAction(Action):
+    '''An action that does nothing and returns None'''
     def run_on(self, line):
         return None
