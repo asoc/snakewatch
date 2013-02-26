@@ -19,11 +19,11 @@ import os
 import logging
 
 NAME = 'snakewatch'
-VERSION = '0.2.dev-2'
+VERSION = '1.0.0.dev-1'
 DESCRIPTION = '%s v%s\nA log watcher' % (NAME, VERSION)
-URL = 'http://bitbucket.org/asoc/snakewatch'
-AUTHOR = 'Alex Honeywell',
-AUTHOR_EMAIL = 'alex.honeywell@gmail.com',
+URL = 'http://illogi.ca/l/projects/snakewatch'
+AUTHOR = 'Alex Honeywell'
+AUTHOR_EMAIL = 'alex.honeywell@gmail.com'
 
 USER_PATH = os.path.expanduser(os.path.join('~', '.snakewatch'))
 

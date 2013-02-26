@@ -28,7 +28,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 # Program modules
-from snakewatch import NAME, VERSION, DESCRIPTION, USER_PATH, \
+from snakewatch import NAME, VERSION, DESCRIPTION, USER_PATH, URL, AUTHOR, AUTHOR_EMAIL, \
     LOG_FILE, LOG_LEVEL, LOG_BACKUP_COUNT, LOG_MAX_BYTES, LOG_FORMAT, LOG_TO_STDOUT
 
 
@@ -95,7 +95,7 @@ def main():
     parser.add_argument(
         '-v', '--version', 
         action='version', 
-        version=VERSION
+        version='\n'.join([NAME, VERSION, '', '%s <%s>' % (AUTHOR, AUTHOR_EMAIL), URL])
     )
     parser.add_argument(
         '-c', '--config', 

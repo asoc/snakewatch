@@ -4,7 +4,6 @@ import ez_setup
 ez_setup.use_setuptools()
 
 import os
-import sys
 from setuptools import setup, find_packages
 
 from snakewatch import NAME, VERSION, DESCRIPTION, URL, AUTHOR, AUTHOR_EMAIL
@@ -13,7 +12,6 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 main = ['snakewatch/main.py',]
-pyside_packages = ['PySide.QtCore', 'PySide.QtGui',]
 
 required_packages = ['colorama', 'argparse', 'importlib', 'pkgutil',]
 need_to_install = []
@@ -24,25 +22,9 @@ for pkg in required_packages:
     except ImportError:
         need_to_install.append(pkg)
 
-if sys.platform.startswith('darwin'):
-    extra_options = dict(
-        setup_requires = ['py2app',],
-        app = main,
-        options = dict(py2app = dict(
-            argv_emulation = True,
-            includes = pyside_packages,
-        )),
-    )
-elif sys.platform.startswith('win'):
-    import py2exe
-    extra_options = dict(
-        setup_requires = ['py2exe',],
-        app = main,
-    )
-else:
-    extra_options = dict(
-        scripts = main,
-    )
+extra_options = dict(
+    scripts = main,
+)
 
 setup(
     name = NAME,
@@ -54,7 +36,7 @@ setup(
     url = URL,
     description = DESCRIPTION,
     keywords = 'log, tail',
-    long_description = read('README.txt'),
+    long_description = read('README.textile'),
 
     packages = find_packages(),
     install_requires = need_to_install,
@@ -67,9 +49,8 @@ setup(
 
     license = 'LGPL',
     classifiers = [
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Environment :: Console',
-        'Environment :: X11 Applications :: Qt',
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',
         'License :: OSI Approved :: GNU Library or Lesser General Public License',
