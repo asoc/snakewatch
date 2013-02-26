@@ -42,7 +42,9 @@ _logger.addHandler(_log_handler)
 
 def get_logger(name):
     '''Get a logging instance consistent with the main logger'''
-    return _logger.getChild(name)
+    if sys.version_info > (2, 7):
+        return _logger.getChild(name)
+    return logging.getLogger('.'.join([_logger.name, name]))
 
 
 from snakewatch.input import File, STD

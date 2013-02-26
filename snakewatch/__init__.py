@@ -19,7 +19,7 @@ import os
 import logging
 
 NAME = 'snakewatch'
-VERSION = '1.0.0.rc-1'
+VERSION = '1.0.0.rc-2'
 DESCRIPTION = '%s v%s\nA log watcher' % (NAME, VERSION)
 URL = 'http://illogi.ca/l/projects/snakewatch'
 AUTHOR = 'Alex Honeywell'

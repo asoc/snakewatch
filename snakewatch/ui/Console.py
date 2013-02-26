@@ -54,13 +54,14 @@ class ConsoleUI(object):
                 'One of \'--watch\' or \'--read\' must be provided.\n' \
                 'Use \'--help\' for more information.'
             )
-            self.quit()
+            self.close()
+            return
             
         if start_config is None:
             self.cfg = config.DefaultConfig(self)
             msg = 'No config provided, using %s' % self.cfg.source
             if self.cfg.source == 'default':
-                msg = '\n'.join(msg, 'Consider creating %s' % config.DefaultConfig.file_for(self))
+                msg = '\n'.join([msg, 'Consider creating %s' % config.DefaultConfig.file_for(self)])
             self.print_ntc(msg)
         else:
             try:
@@ -69,7 +70,8 @@ class ConsoleUI(object):
                 self.print_err('Error in config script %s\n%s' % (
                     start_config, err
                 ))
-                self.quit()
+                self.close()
+                return
         
         self.input = start_input
         self.interrupted = False
@@ -79,7 +81,7 @@ class ConsoleUI(object):
             self.int_callback
         )
 
-        self.quit()
+        self.close()
 
     def fatal_error(self, exc_type, exc_value, exc_traceback):
         '''Called when an unhandled exception is raised from run()'''
@@ -126,8 +128,9 @@ class ConsoleUI(object):
         _logger.debug('Received signal: %d' % signum)
         if self.input:
             self.input.close()
+        self.close()
         
-    def quit(self):
+    def close(self):
         '''Close any necessary resources'''
         if self.received_signal:
             self.print_err('Received interrupt, quitting')

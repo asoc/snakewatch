@@ -96,22 +96,22 @@ class DefaultConfig(Config):
 
     def __init__(self, ui, use_file=True):
         user_default = DefaultConfig.file_for(ui)
-        use_builtin = False
         if use_file and os.path.exists(user_default):
             try:
                 with open(user_default) as fp:
                     super(DefaultConfig, self).__init__(fp)
             except Exception as err:
-                use_builtin = True
+                pass
+            else:
+                return
 
-        if use_builtin:
-            cfg = [
-                {
-                    'regex': '.*',
-                    'action': 'Print',
-                },
-            ]
-            super(DefaultConfig, self).__init__(cfg)
+        cfg = [
+            {
+                'regex': '.*',
+                'action': 'Print',
+            },
+        ]
+        super(DefaultConfig, self).__init__(cfg)
 
     @classmethod
     def file_for(cls, ui):
