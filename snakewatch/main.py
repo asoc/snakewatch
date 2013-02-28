@@ -127,9 +127,7 @@ def main():
     from snakewatch.ui import Console
     handler = Console.ConsoleUI()
     
-    if sys.platform.startswith('win'):
-        signal.signal(signal.CTRL_C_EVENT, handler.handle_signal)
-    else:
+    if not sys.platform.startswith('win'):
         signal.signal(signal.SIGHUP, handler.handle_signal)
         signal.signal(signal.SIGQUIT, handler.handle_signal)
     signal.signal(signal.SIGINT, handler.handle_signal)
