@@ -41,18 +41,21 @@ class Config(object):
     
     def __init__(self, cfg_file, ui_kwargs):
         snakewatch.util.config = self
+        self.actions = []
+
         if isinstance(cfg_file, str):
-            fp = open(cfg_file, 'r')
-            self.cfg = json.load(fp)
+            try:
+                fp = open(cfg_file, 'r')
+                self.cfg = json.load(fp)
+            except Exception as err:
+                snakewatch.util.ui_print.error('Cannot read config from %s' % cfg_file, str(err), sep='\n')
+                raise AbortError()
+
             fp.close()
             self.source = cfg_file
-        elif isinstance(cfg_file, file):
-            self.cfg = json.load(cfg_file)
-            self.source = cfg_file.name
         elif isinstance(cfg_file, list):
             self.cfg = cfg_file
             self.source = 'default'
-        self.actions = []
         self.cfg = lower_keys(self.cfg)
         self.check_actions(ui_kwargs)
         
@@ -81,7 +84,7 @@ class Config(object):
             try:
                 self.actions.append(action(**kwargs))
             except ConfigError as ce:
-                snakewatch.util.ui_print.error('Config error detected:', ce, sep='\n')
+                snakewatch.util.ui_print.error('Config error detected:', str(ce), sep='\n')
                 raise AbortError()
             except NotConfirmedError as nce:
                 snakewatch.util.ui_print.error('Config entry not confirmed')
@@ -126,13 +129,7 @@ class DefaultConfig(Config):
     def __init__(self, ui, ui_kwargs, use_file=True):
         user_default = DefaultConfig.file_for(ui)
         if use_file and os.path.exists(user_default):
-            try:
-                with open(user_default) as fp:
-                    super(DefaultConfig, self).__init__(fp, ui_kwargs)
-            except (OSError, IOError):
-                snakewatch.util.ui_print.error('Cannot read config from %s' % user_default)
-            else:
-                return
+            super(DefaultConfig, self).__init__(user_default, ui_kwargs)
 
         cfg = [
             {

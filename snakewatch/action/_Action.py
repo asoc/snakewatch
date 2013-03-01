@@ -32,16 +32,23 @@ class Action(object):
     def __init__(self, cfg, required_attributes=list()):
         self.raw_cfg = copy.deepcopy(cfg)
         self.cfg = cfg
-        self.pattern = re.compile(self.cfg['regex'])
+        try:
+            self.pattern = re.compile(self.cfg['regex'])
+        except Exception as err:
+            self._config_error('Invalid RegEx: %s' % str(err))
+
         self.name = self.__module__.split('.')[-1:][0]
         self.stop_matching = 'continue' not in self.cfg or not self.cfg['continue']
 
         for attr in required_attributes:
             if attr not in cfg:
-                raise ConfigError('%s missing required attribute %s:\n%s' % (
-                    self.__class__.__name__, attr, self.cfg
-                ))
-    
+                self._config_error('missing required attribute %s' % attr)
+
+    def _config_error(self, message):
+        raise ConfigError('%s: %s\n%s' % (
+            self.__class__.__name__, message, self.cfg
+        ))
+
     def matches(self, line):
         return self.pattern.match(line) is not None
 

@@ -8,17 +8,20 @@ bc. [
     {
         "regex": "<pattern>",
         "action": "<action>"[,
-        "<action_argument>": "<value>"[, ...]
+        "<argument>": "<value>"[, ...]
         ]
     }[, ...]
 ]
 
 Currently supported ConsoleUI actions:
 
-* *Print* (with colours!)
-** with additional arguments _fore_, _back_, and _style_ (see "colorama":https://pypi.python.org/pypi/colorama for a list of supported values)
+* *Print* (with colours!) - prints the line to stdout
+** additional arguments: _fore_, _back_, and _style_ (see "colorama":https://pypi.python.org/pypi/colorama for a list of supported values)
 
-* *Ignore*
+* *Ignore* - ignores the input line
+
+* *Write* - write the line to a file. Multiple actions can write to the same file (_truncate_ must be the same).
+** additional arguments: _truncate_
 
 *Required action arguments:*
 * regex - the regular expression to match against
