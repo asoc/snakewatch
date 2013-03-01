@@ -47,6 +47,7 @@ class ConsoleUI(object):
         self.received_signal = False
         self.interrupted = False
         self.input = None
+        self._waiting_for_input = None
         self.current_style = Style.RESET_ALL
 
         snakewatch.util.ui_print = UIPrint(self.print_ntc, self.print_warn, self.print_err)
@@ -98,13 +99,16 @@ class ConsoleUI(object):
 
     def confirm(self, msg):
         self.print_warn(msg)
-        prompt = 'Is this OK? [Y/N] : '
         response = 'n'
-        while prompt:
+        prompt = 'Is this OK? [Y/N] : '
+        while prompt and not self.received_signal:
+            self._waiting_for_input = True
             try:
                 response = raw_input(prompt).lower()
             except EOFError:
                 return False
+            finally:
+                self._waiting_for_input = False
 
             if response:
                 response = response[0]
@@ -131,9 +135,7 @@ class ConsoleUI(object):
         if self.interrupted:
             self.print_ntc('Watch resuming on %s' % self.input.name())
         else:
-            self.print_ntc('(press Ctrl-C to stop) Watching %s' % 
-                self.input.name()
-            )
+            self.print_ntc('(press Ctrl-C to stop) Watching %s' % self.input.name())
         self.interrupted = False
         
     def output_callback(self, line):
@@ -144,16 +146,21 @@ class ConsoleUI(object):
     def int_callback(self, error):
         '''Called when the watcher encounters a problem'''
         if not self.interrupted:
-            self.print_err('Watch interrupted: %s' % (error))
+            self.print_err('Watch interrupted: %s' % error)
         self.interrupted = True
         
     def handle_signal(self, signum, frame):
         '''Handle an OS signal from the user'''
         self.received_signal = True
 
+        if self._waiting_for_input:
+            self.print_err('Waiting for stdin data. Press enter to quit (use Ctrl/Cmd-D to avoid this message)')
+            return
+
         _logger.debug('Received signal: %d' % signum)
         if self.input:
             self.input.close()
+
         self.close()
         
     def close(self):
