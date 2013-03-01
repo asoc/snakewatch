@@ -20,8 +20,10 @@ import json
 import os
 import importlib
 
+import snakewatch.util
 from snakewatch import USER_PATH
-
+from snakewatch.util import AbortError, ConfigError, NotConfirmedError
+from snakewatch.action._ConfirmAction import ConfirmAction
 
 def lower_keys(x):
     '''Recursively make all keys lower-case'''
@@ -37,7 +39,8 @@ class Config(object):
 
     available_actions = {}
     
-    def __init__(self, cfg_file):
+    def __init__(self, cfg_file, ui_kwargs):
+        snakewatch.util.config = self
         if isinstance(cfg_file, str):
             fp = open(cfg_file, 'r')
             self.cfg = json.load(fp)
@@ -51,40 +54,66 @@ class Config(object):
             self.source = 'default'
         self.actions = []
         self.cfg = lower_keys(self.cfg)
-        self.check_actions()
+        self.check_actions(ui_kwargs)
         
-    def check_actions(self):
+    def check_actions(self, ui_kwargs):
         '''Create an action instance for each entry in the config'''
         ptrn = re.compile('[\W]+')
 
         for entry in self.cfg:
             name = ptrn.sub('', entry['action']).title()
             entry['action'] = name
+
+            action_object_name = '%sAction' % name
+
             try:
                 action = Config.available_actions[name]
             except KeyError:
                 action_module = importlib.import_module('snakewatch.action.%s' % name)
-
-                action_object_name = '%sAction' % name
                 Config.available_actions[name] = action = getattr(action_module, action_object_name)
 
-            self.actions.append(action(entry))
+            kwargs = {
+                'cfg': entry,
+            }
+            if issubclass(action, ConfirmAction):
+                kwargs['ui_confirm'] = ui_kwargs['ui_confirm']
+
+            try:
+                self.actions.append(action(**kwargs))
+            except ConfigError as ce:
+                snakewatch.util.ui_print.error('Config error detected:', ce, sep='\n')
+                raise AbortError()
+            except NotConfirmedError as nce:
+                snakewatch.util.ui_print.error('Config entry not confirmed')
+                raise AbortError()
+            except:
+                snakewatch.util.ui_print.error('Fatal Error when instantiating %s' % action_object_name)
+                raise
         
-    def match(self, line):
+    def match(self, line, output_method, **output_kwargs):
         '''Perform the first action where action.matches(line) is True
 
         If a match is found, return the result of action.run_on(line)
           or '' if the result is None
 
-        If no match is found, return the
+        If no match is found, return the line unchanged
         '''
+
+        matched = False
         for action in self.actions:
-            if action.matches(line):
-                result = action.run_on(line)
-                if result is None:
-                    return ''
-                return result
-        return line
+            if not action.matches(line):
+                continue
+
+            matched = True
+            result = action.run_on(line)
+            if result is not None:
+                output_method(result, **output_kwargs)
+
+            if not action.continue_matching():
+                break
+
+        if not matched:
+            output_method(line, **output_kwargs)
 
 
 class DefaultConfig(Config):
@@ -94,14 +123,14 @@ class DefaultConfig(Config):
     and uses Print for all inputs.
     '''
 
-    def __init__(self, ui, use_file=True):
+    def __init__(self, ui, ui_kwargs, use_file=True):
         user_default = DefaultConfig.file_for(ui)
         if use_file and os.path.exists(user_default):
             try:
                 with open(user_default) as fp:
-                    super(DefaultConfig, self).__init__(fp)
-            except Exception as err:
-                pass
+                    super(DefaultConfig, self).__init__(fp, ui_kwargs)
+            except (OSError, IOError):
+                snakewatch.util.ui_print.error('Cannot read config from %s' % user_default)
             else:
                 return
 
@@ -111,7 +140,7 @@ class DefaultConfig(Config):
                 'action': 'Print',
             },
         ]
-        super(DefaultConfig, self).__init__(cfg)
+        super(DefaultConfig, self).__init__(cfg, ui_kwargs)
 
     @classmethod
     def file_for(cls, ui):

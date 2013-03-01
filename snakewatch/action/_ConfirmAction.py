@@ -15,13 +15,26 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from abc import ABCMeta, abstractmethod
+
+from snakewatch.util import NotConfirmedError
 from snakewatch.action._Action import Action
 
 
-class IgnoreAction(Action):
-    '''An action that does nothing and returns None'''
-    def run_on(self, line):
-        return None
+class ConfirmAction(Action):
+    '''An abstract Action that requests user confirmation
 
-    def release_resources(self):
+    If any confirm_config request fails, snakewatch will not run.
+    '''
+
+    __metaclass__ = ABCMeta
+
+    def __init__(self, cfg, ui_confirm, required_attributes=list()):
+        super(ConfirmAction, self).__init__(cfg, required_attributes)
+
+        if not ui_confirm(self.confirm_message()):
+            raise NotConfirmedError()
+
+    @abstractmethod
+    def confirm_message(self):
         pass

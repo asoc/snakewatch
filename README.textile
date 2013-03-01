@@ -8,7 +8,7 @@ bc. [
     {
         "regex": "<pattern>",
         "action": "<action>"[,
-        "<action_option>": "<value>"[, ...]
+        "<action_argument>": "<value>"[, ...]
         ]
     }[, ...]
 ]
@@ -16,10 +16,16 @@ bc. [
 Currently supported ConsoleUI actions:
 
 * *Print* (with colours!)
-** with options _fore_, _back_, and _style_ (see "colorama":https://pypi.python.org/pypi/colorama for a list of supported values)
+** with additional arguments _fore_, _back_, and _style_ (see "colorama":https://pypi.python.org/pypi/colorama for a list of supported values)
 
 * *Ignore*
 
+*Required action arguments:*
+* regex - the regular expression to match against
+* action - the action to perform if the regex matches a line from the input
+
+*Optional action arguments:*
+* continue - if set to true, matching will continue even if the action is called (default is false)
 
 h2. Example config for monitoring SASS output:
 

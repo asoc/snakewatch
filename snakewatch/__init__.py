@@ -15,6 +15,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from __future__ import print_function
+
 import os
 import logging
 
@@ -33,19 +35,3 @@ LOG_FORMAT = '%(asctime)-15s [%(levelname)s] %(name)s: %(message)s'
 LOG_LEVEL = logging.DEBUG
 LOG_MAX_BYTES = 1024*1024*5
 LOG_BACKUP_COUNT = 1
-
-def enum(*sequential, **named):
-    enums = dict(zip(sequential, range(len(sequential))), **named)
-    return type('Enum', (), enums)
-
-class SysToLogging(object):
-    def __init__(self, log_level):
-        self.log_level = log_level
-        self.linebuf = ''
-    
-    def flush(self):
-        pass
-    
-    def write(self, buf):
-        for line in buf.rstrip().splitlines():
-            logging.log(self.log_level, line.rstrip())

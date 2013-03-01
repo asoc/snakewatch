@@ -21,7 +21,9 @@ import os
 import logging
 from colorama import init as cl_init, deinit as cl_deinit, Fore, Back, Style
 
+import snakewatch.util
 from snakewatch import config
+from snakewatch.util import UIPrint, AbortError
 from snakewatch.main import get_logger
 
 
@@ -31,6 +33,7 @@ _PREPEND_MSG = '\n%(reset)s *** [%(dim)s%(name)s%(reset)s] ' % {
 }
 
 _NOTICE_CLR = Fore.GREEN + Style.DIM
+_WARNING_CLR = Fore.YELLOW + Style.BRIGHT
 _ERROR_CLR = Fore.RED + Style.BRIGHT
 
 _logger = get_logger('Console')
@@ -40,12 +43,15 @@ class ConsoleUI(object):
     '''UI Handler that outputs to sys.stdout'''
 
     def __init__(self, *args):
+        self.closed = False
         self.received_signal = False
         self.interrupted = False
         self.input = None
         self.current_style = Style.RESET_ALL
+
+        snakewatch.util.ui_print = UIPrint(self.print_ntc, self.print_warn, self.print_err)
     
-    def run(self, start_input, start_config):
+    def run(self, start_input, args):
         '''Read in the config and start watching the input'''
         cl_init()
         
@@ -56,19 +62,26 @@ class ConsoleUI(object):
             )
             self.close()
             return
-            
-        if start_config is None:
-            self.cfg = config.DefaultConfig(self)
-            msg = 'No config provided, using %s' % self.cfg.source
-            if self.cfg.source == 'default':
-                msg = '\n'.join([msg, 'Consider creating %s' % config.DefaultConfig.file_for(self)])
-            self.print_ntc(msg)
+
+        ui_kwargs = {'ui_confirm': self.confirm}
+        if args.config is None:
+            if args.no_config:
+                self.cfg = config.DefaultConfig(self, use_file=False, ui_kwargs=ui_kwargs)
+            else:
+                self.cfg = config.DefaultConfig(self, ui_kwargs=ui_kwargs)
+                msg = 'No config provided, using %s' % self.cfg.source
+                if self.cfg.source == 'default':
+                    msg = '\n'.join([msg, 'Consider creating %s' % config.DefaultConfig.file_for(self)])
+                self.print_ntc(msg)
         else:
             try:
-                self.cfg = config.Config(start_config)
+                self.cfg = config.Config(args.config, ui_kwargs)
+            except AbortError:
+                self.close()
+                return
             except Exception as err:
                 self.print_err('Error in config script %s\n%s' % (
-                    start_config, err
+                    args.config, err
                 ))
                 self.close()
                 return
@@ -82,6 +95,21 @@ class ConsoleUI(object):
         )
 
         self.close()
+
+    def confirm(self, msg):
+        self.print_warn(msg)
+        prompt = 'Is this OK? [Y/N] : '
+        response = 'n'
+        while prompt:
+            try:
+                response = raw_input(prompt).lower()
+            except EOFError:
+                return False
+
+            if response:
+                response = response[0]
+            prompt = 'Please enter Y or N: ' if response not in ['y', 'n'] else None
+        return response == 'y'
 
     def fatal_error(self, exc_type, exc_value, exc_traceback):
         '''Called when an unhandled exception is raised from run()'''
@@ -111,10 +139,8 @@ class ConsoleUI(object):
     def output_callback(self, line):
         '''Called when the watcher has read a line and performed an action'''
         self.interrupted = False
-        output = self.cfg.match(line)
-        if output:
-            print(output, end='')
-        
+        self.cfg.match(line, print, **{'end': ''})
+
     def int_callback(self, error):
         '''Called when the watcher encounters a problem'''
         if not self.interrupted:
@@ -132,43 +158,39 @@ class ConsoleUI(object):
         
     def close(self):
         '''Close any necessary resources'''
+        if self.closed:
+            return
+
+        self.closed = True
         if self.received_signal:
             self.print_err('Received interrupt, quitting')
         
         print(Style.RESET_ALL, end='')
         cl_deinit()
     
-    def print_msg(self, msg):
+    def print_msg(self, *args, **kwargs):
         '''Print a formatted message'''
-        try:
-            msg = msg.replace('\n', _PREPEND_MSG)
-        except AttributeError:
-            pass
-        print(''.join([_PREPEND_MSG, msg, self.current_style]))
-        print()
-    
-    def print_ntc(self, msg):
+        self._print(*args, **kwargs)
+
+    def print_warn(self, *args, **kwargs):
+        '''Print a formatted warning message'''
+        self._print(_WARNING_CLR, *args, **kwargs)
+
+    def print_ntc(self, *args, **kwargs):
         '''Print a formatted notice message'''
-        prep = ''.join([
-            _PREPEND_MSG,
-            (Style.RESET_ALL + _NOTICE_CLR)
-        ])
-        try:
-            msg = msg.replace('\n', prep)
-        except AttributeError:
-            pass
-        print(''.join([prep, msg, self.current_style]))
-        print()
+        self._print(_NOTICE_CLR, *args, **kwargs)
     
-    def print_err(self, msg):
+    def print_err(self, *args, **kwargs):
         '''Print a formatted error message'''
-        prep = ''.join([
-            _PREPEND_MSG, 
-            (Style.RESET_ALL + _ERROR_CLR)
-        ])
+        self._print(_ERROR_CLR, *args, **kwargs)
+
+    def _print(self, colour='', *args, **kwargs):
         try:
-            msg = msg.replace('\n', prep)
-        except AttributeError:
-            pass
-        print(''.join([prep, msg, self.current_style]))
+            sep = kwargs['sep']
+        except KeyError:
+            sep = ''
+        prepend = ''.join([_PREPEND_MSG, colour])
+        msg = sep.join(args)
+        msg = msg.replace('\n', prepend)
+        print(''.join([prepend, msg, self.current_style]))
         print()

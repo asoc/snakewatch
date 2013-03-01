@@ -21,21 +21,37 @@ import re
 import copy
 from abc import ABCMeta, abstractmethod
 
+from snakewatch.util import ConfigError
+
 
 class Action(object):
     '''Base class for all Actions'''
 
     __metaclass__ = ABCMeta
     
-    def __init__(self, cfg):
+    def __init__(self, cfg, required_attributes=list()):
         self.raw_cfg = copy.deepcopy(cfg)
         self.cfg = cfg
         self.pattern = re.compile(self.cfg['regex'])
         self.name = self.__module__.split('.')[-1:][0]
+        self.stop_matching = 'continue' not in self.cfg or not self.cfg['continue']
+
+        for attr in required_attributes:
+            if attr not in cfg:
+                raise ConfigError('%s missing required attribute %s:\n%s' % (
+                    self.__class__.__name__, attr, self.cfg
+                ))
     
     def matches(self, line):
         return self.pattern.match(line) is not None
-    
+
+    def continue_matching(self):
+        return not self.stop_matching
+
     @abstractmethod
     def run_on(self, line):
-        print()
+        pass
+
+    @abstractmethod
+    def release_resources(self):
+        pass

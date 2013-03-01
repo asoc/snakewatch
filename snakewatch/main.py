@@ -30,7 +30,8 @@ from logging.handlers import RotatingFileHandler
 # Program modules
 from snakewatch import NAME, VERSION, DESCRIPTION, USER_PATH, URL, AUTHOR, AUTHOR_EMAIL, \
     LOG_FILE, LOG_LEVEL, LOG_BACKUP_COUNT, LOG_MAX_BYTES, LOG_FORMAT, LOG_TO_STDOUT
-
+from snakewatch.util import AbortError
+import snakewatch.util
 
 _logger = logging.getLogger()
 _logger.setLevel(LOG_LEVEL)
@@ -49,6 +50,17 @@ def get_logger(name):
 
 from snakewatch.input import File, STD
 
+def release_action_resources():
+    '''Release all resources loaded by all actions'''
+
+    for action in snakewatch.util.config.actions:
+        try:
+            action.release_resources()
+        except:
+            snakewatch.util.ui_print.error(
+                'Unable to release resources for action %s' % action.__class__.__name__,
+                str(action.cfg), sep='\n'
+            )
 
 def main():
     global _log_handler
@@ -99,9 +111,14 @@ def main():
         action='version', 
         version='\n'.join([NAME, VERSION, '', '%s <%s>' % (AUTHOR, AUTHOR_EMAIL), URL])
     )
-    parser.add_argument(
+    parser_config = parser.add_mutually_exclusive_group()
+    parser_config.add_argument(
         '-c', '--config', 
         help='which configuration file to use'
+    )
+    parser_config.add_argument(
+        '--no-config', action='store_true', default=False,
+        help='don\'t use any configuration file (including the default), print everything'
     )
     parser.add_argument(
         '-n', '--lines',
@@ -119,9 +136,9 @@ def main():
         action='store_true',
         help='read input from stdin'
     )
-    
+
     args = parser.parse_args(sys.argv[1:])
-    
+
     _logger.debug('%s\n' % ('=' * 40))
 
     from snakewatch.ui import Console
@@ -140,14 +157,20 @@ def main():
         input = File.FileInput(args.watch, args.lines)
     else:
         input = None
-    
+
     try:
-        handler.run(input, args.config)
+        handler.run(input, args)
+    except AbortError:
+        pass
     except:
+        if LOG_LEVEL == logging.DEBUG:
+            raise
         import traceback
         exc_type, exc_value = sys.exc_info()[:2]
         exc_traceback = traceback.extract_stack()
         handler.fatal_error(exc_type, exc_value, exc_traceback)
+    finally:
+        release_action_resources()
 
     _logger.debug('snakewatch exiting\n')
     _log_handler.close()

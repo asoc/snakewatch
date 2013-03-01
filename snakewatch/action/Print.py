@@ -45,3 +45,6 @@ class PrintAction(Action):
         
     def run_on(self, line):
         return ''.join([self.style, line])
+
+    def release_resources(self):
+        pass
