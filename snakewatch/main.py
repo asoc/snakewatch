@@ -50,8 +50,12 @@ def get_logger(name):
 
 from snakewatch.input import File, STD
 
+
 def release_action_resources():
     '''Release all resources loaded by all actions'''
+
+    if snakewatch.util.config is None:
+        return
 
     for action in snakewatch.util.config.actions:
         try:
@@ -61,6 +65,7 @@ def release_action_resources():
                 'Unable to release resources for action %s' % action.__class__.__name__,
                 str(action.cfg), sep='\n'
             )
+
 
 def main():
     global _log_handler
