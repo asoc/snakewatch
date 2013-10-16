@@ -1,4 +1,4 @@
-'''
+"""
 This file is part of snakewatch.
 
 snakewatch is free software: you can redistribute it and/or modify
@@ -13,24 +13,46 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
+from __future__ import print_function
 
 import ez_setup
 ez_setup.use_setuptools()
 
 import os
+import sys
 from setuptools import setup, find_packages
 
 from snakewatch import NAME, VERSION, DESCRIPTION, URL, AUTHOR, AUTHOR_EMAIL
 
+main = ['snakewatch/main.py']
+required_packages = ['colorama', 'argparse', 'importlib', 'pkgutil']
+need_to_install = []
+
+extra_options = dict(
+    scripts=main,
+)
+options = dict()
+
+if 'py2exe' in sys.argv:
+    try:
+        import py2exe
+    except ImportError:
+        print('py2exe not found, cannot build executable.', file=sys.stderr)
+        sys.exit(1)
+
+    extra_options.update(dict(
+        console=main,
+        zipfile=None,
+    ))
+
+    options['py2exe'] = dict(
+        bundle_files=1,
+    )
+
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
-
-main = ['snakewatch/main.py']
-
-required_packages = ['colorama', 'argparse', 'importlib', 'pkgutil']
-need_to_install = []
 
 for pkg in required_packages:
     try:
@@ -38,9 +60,6 @@ for pkg in required_packages:
     except ImportError:
         need_to_install.append(pkg)
 
-extra_options = dict(
-    scripts = main,
-)
 
 setup(
     name=NAME,
@@ -65,7 +84,7 @@ setup(
 
     license='LGPL',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',
@@ -74,6 +93,7 @@ setup(
         'Programming Language :: Python',
         'Topic :: System :: Logging',
     ],
-    
+
+    options=options,
     **extra_options
 )
