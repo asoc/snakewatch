@@ -1,4 +1,4 @@
-'''
+"""
 This file is part of snakewatch.
 
 snakewatch is free software: you can redistribute it and/or modify
@@ -13,13 +13,13 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 from snakewatch.action._Action import Action
 
 
 class IgnoreAction(Action):
-    '''An action that does nothing and returns None'''
+    """An action that does nothing and returns None"""
     def run_on(self, line):
         return None
 

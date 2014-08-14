@@ -1,4 +1,4 @@
-'''
+"""
 This file is part of snakewatch.
 
 snakewatch is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 from abc import ABCMeta, abstractmethod
 
@@ -22,10 +22,10 @@ from snakewatch.action._Action import Action
 
 
 class ConfirmAction(Action):
-    '''An abstract Action that requests user confirmation
+    """An abstract Action that requests user confirmation
 
     If any confirm_config request fails, snakewatch will not run.
-    '''
+    """
 
     __metaclass__ = ABCMeta
 

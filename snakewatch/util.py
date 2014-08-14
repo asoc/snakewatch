@@ -1,4 +1,4 @@
-'''
+"""
 This file is part of snakewatch.
 
 snakewatch is free software: you can redistribute it and/or modify
@@ -13,25 +13,39 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 from __future__ import print_function
 
 import logging
 
 
+config = None
+
+
 class UIPrint(object):
-    def __init__(self, notice, warning, error):
+    def __init__(self, notice, warning, error, get_choice):
         self.notice = notice
         self.warning = warning
         self.error = error
+        self.get_choice = get_choice
 
-ui_print = UIPrint(print, print, print)
-config = None
+ui_print = UIPrint(print, print, print, print)
+
 
 def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)
     return type('Enum', (), enums)
+
+
+def get_read_object(args):
+    if args.read:
+        from snakewatch.input import STD
+        return STD.STDInput()
+    elif args.watch is not None:
+        from snakewatch.input import File
+        return File.FileInput(args.watch, args.lines)
+    return None
 
 
 class SysToLogging(object):
@@ -53,14 +67,14 @@ class AbortError(Exception):
 
 
 class ConfigError(Exception):
-    '''Raised when a config error has been detected'''
+    """Raised when a config error has been detected"""
 
     def __init__(self, message):
         super(ConfigError, self).__init__(message)
 
 
 class NotConfirmedError(Exception):
-    '''Raised when the user has not confirmed a ConfirmAction'''
+    """Raised when the user has not confirmed a ConfirmAction"""
 
     def __init__(self):
         super(NotConfirmedError, self).__init__()

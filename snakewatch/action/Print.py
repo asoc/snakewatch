@@ -1,4 +1,4 @@
-'''
+"""
 This file is part of snakewatch.
 
 snakewatch is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 import re
 from colorama import Fore, Back, Style
@@ -22,7 +22,7 @@ from snakewatch.action._Action import Action
 
 
 class PrintAction(Action):
-    '''An Action that returns the line with possible colouring'''
+    """An Action that returns the line with possible colouring"""
 
     non_char = re.compile('[^a-zA-Z]+')
     styleable = ['fore', 'back', 'style']

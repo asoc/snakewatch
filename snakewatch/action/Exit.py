@@ -15,23 +15,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function
+from snakewatch.action._Action import Action
+from snakewatch.util import AbortError
 
-import os
-import logging
 
-NAME = 'snakewatch'
-VERSION = '1.0.0.rc-5'
-DESCRIPTION = '%s v%s\nA log watcher' % (NAME, VERSION)
-URL = 'http://illogi.ca/l/projects/snakewatch'
-AUTHOR = 'Alex Honeywell'
-AUTHOR_EMAIL = 'alex.honeywell@gmail.com'
+class ExitAction(Action):
+    """An action that causes snakewatch to exit"""
+    def run_on(self, line):
+        raise AbortError()
 
-USER_PATH = os.path.expanduser(os.path.join('~', '.snakewatch'))
-
-LOG_FILE = os.path.join(USER_PATH, 'snakewatch.log')
-LOG_TO_STDOUT = False
-LOG_FORMAT = '%(asctime)-15s [%(levelname)s] %(name)s: %(message)s'
-LOG_LEVEL = logging.INFO
-LOG_MAX_BYTES = 1024*1024*5
-LOG_BACKUP_COUNT = 1
+    def release_resources(self):
+        pass

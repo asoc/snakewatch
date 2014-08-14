@@ -1,4 +1,4 @@
-'''
+"""
 This file is part of snakewatch.
 
 snakewatch is free software: you can redistribute it and/or modify
@@ -13,23 +13,23 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 class Input():
-    '''Base class for all Inputs'''
+    """Base class for all Inputs"""
 
     __metaclass__ = ABCMeta
 
     pipe = None
 
     def connect_process(self, pipe):
-        '''Connect this input to the receiving end of a Pipe'''
+        """Connect this input to the receiving end of a Pipe"""
         self.pipe = pipe
         
     def process_pipe(self):
-        '''Process any signals from the Pipe'''
+        """Process any signals from the Pipe"""
         if self.pipe is not None:
             signal = None
             try:
@@ -42,20 +42,20 @@ class Input():
     
     @abstractproperty
     def name(self):
-        '''Name of the Input'''
+        """Name of the Input"""
         return None
     
     @abstractmethod
     def open(self):
-        '''Open the Input and get ready for watching'''
+        """Open the Input and get ready for watching"""
         pass
     
     @abstractmethod
     def watch(self, started_callback, output_callback, int_callback):
-        '''Start watching the Input'''
+        """Start watching the Input"""
         pass
     
     @abstractmethod
     def close(self):
-        '''Close the Input and any associated resources'''
+        """Close the Input and any associated resources"""
         pass

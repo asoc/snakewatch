@@ -15,23 +15,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function
 
-import os
-import logging
+def get_arg_group(argparser, mode_name):
+    return argparser.add_argument_group('{} Mode Only'.format(mode_name))
 
-NAME = 'snakewatch'
-VERSION = '1.0.0.rc-5'
-DESCRIPTION = '%s v%s\nA log watcher' % (NAME, VERSION)
-URL = 'http://illogi.ca/l/projects/snakewatch'
-AUTHOR = 'Alex Honeywell'
-AUTHOR_EMAIL = 'alex.honeywell@gmail.com'
 
-USER_PATH = os.path.expanduser(os.path.join('~', '.snakewatch'))
+def add_cmdln_argument(group, mode_name, *args, **kwargs):
+    prefix = mode_name.lower()
+    _args = map(list, args)
 
-LOG_FILE = os.path.join(USER_PATH, 'snakewatch.log')
-LOG_TO_STDOUT = False
-LOG_FORMAT = '%(asctime)-15s [%(levelname)s] %(name)s: %(message)s'
-LOG_LEVEL = logging.INFO
-LOG_MAX_BYTES = 1024*1024*5
-LOG_BACKUP_COUNT = 1
+    for i in range(0, len(args)):
+        if args[i][:2] == '--':
+            _args[i] = '--{}-{}'.format(prefix, args[i][2:])
+        elif args[i][0] == '-':
+            _args[i] = '-{}-{}'.format(prefix, args[i][1:])
+        else:
+            raise ValueError('Mode arguments may not be positional')
+
+    group.add_argument(*_args, **kwargs)
