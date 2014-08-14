@@ -15,26 +15,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from abc import ABCMeta, abstractmethod
 
-from snakewatch.util import NotConfirmedError
-from snakewatch.action._Action import Action
+def get_arg_group(argparser, mode_name):
+    return argparser.add_argument_group('{} Mode Only'.format(mode_name))
 
 
-class ConfirmAction(Action):
-    """An abstract Action that requests user confirmation
+def add_cmdln_argument(group, mode_name, *args, **kwargs):
+    prefix = mode_name.lower()
+    _args = map(list, args)
 
-    If any confirm_config request fails, snakewatch will not run.
-    """
+    for i in range(0, len(args)):
+        if args[i][:2] == '--':
+            _args[i] = '--{}-{}'.format(prefix, args[i][2:])
+        elif args[i][0] == '-':
+            _args[i] = '-{}-{}'.format(prefix, args[i][1:])
+        else:
+            raise ValueError('Mode arguments may not be positional')
 
-    __metaclass__ = ABCMeta
-
-    def __init__(self, cfg, ui_confirm, required_attributes=list()):
-        super(ConfirmAction, self).__init__(cfg, required_attributes)
-
-        if not ui_confirm(self.confirm_message()):
-            raise NotConfirmedError()
-
-    @abstractmethod
-    def confirm_message(self):
-        pass
+    group.add_argument(*_args, **kwargs)

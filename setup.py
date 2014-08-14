@@ -71,7 +71,7 @@ setup(
     url=URL,
     description=DESCRIPTION,
     keywords='log, tail',
-    long_description=read('README.textile'),
+    long_description=read('README'),
 
     packages=find_packages(),
     install_requires=need_to_install,
@@ -88,7 +88,7 @@ setup(
         'Environment :: Console',
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',
-        'License :: OSI Approved :: GNU Library or Lesser General Public License',
+        'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Topic :: System :: Logging',

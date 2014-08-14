@@ -1,4 +1,4 @@
-'''
+"""
 This file is part of snakewatch.
 
 snakewatch is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 import os
 
@@ -23,7 +23,7 @@ from snakewatch.action._ConfirmAction import ConfirmAction
 
 
 class WriteAction(ConfirmAction):
-    '''An Action that returns the line with possible colouring'''
+    """An Action that returns the line with possible colouring"""
 
     instances = dict()
 

@@ -1,4 +1,4 @@
-'''
+"""
 This file is part of snakewatch.
 
 snakewatch is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 import sys
 
@@ -21,7 +21,7 @@ from snakewatch.input._Input import Input
 
 
 class STDInput(Input):
-    '''Input handler for sys.stdin'''
+    """Input handler for sys.stdin"""
 
     def __init__(self):
         self.closed = True

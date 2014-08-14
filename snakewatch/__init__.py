@@ -1,4 +1,4 @@
-'''
+"""
 This file is part of snakewatch.
 
 snakewatch is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 from __future__ import print_function
 
@@ -21,7 +21,7 @@ import os
 import logging
 
 NAME = 'snakewatch'
-VERSION = '1.0.0.dev-2'
+VERSION = '1.1.0-dev'
 DESCRIPTION = '%s v%s\nA log watcher' % (NAME, VERSION)
 URL = 'http://illogi.ca/l/projects/snakewatch'
 AUTHOR = 'Alex Honeywell'
@@ -30,7 +30,7 @@ AUTHOR_EMAIL = 'alex.honeywell@gmail.com'
 USER_PATH = os.path.expanduser(os.path.join('~', '.snakewatch'))
 
 LOG_FILE = os.path.join(USER_PATH, 'snakewatch.log')
-LOG_TO_STDOUT = False
+LOG_TO_STDOUT = True
 LOG_FORMAT = '%(asctime)-15s [%(levelname)s] %(name)s: %(message)s'
 LOG_LEVEL = logging.DEBUG
 LOG_MAX_BYTES = 1024*1024*5

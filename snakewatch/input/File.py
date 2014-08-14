@@ -1,4 +1,4 @@
-'''
+"""
 This file is part of snakewatch.
 
 snakewatch is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 import os
 import time
@@ -21,7 +21,7 @@ import time
 from snakewatch.input._Input import Input
 
 class FileInput(Input):
-    '''An Input that reads from a system file'''
+    """An Input that reads from a system file"""
 
     def __init__(self, filename, readback=0):
         self.filename = filename
@@ -81,11 +81,11 @@ class FileInput(Input):
                     time.sleep(0.1)
     
     def readline(self, int_callback):
-        '''Read a line from the file.
+        """Read a line from the file.
 
         If the file has been truncated, or cannot be read from, close the file handle,
         set the readback to start at the beginning, and let the watcher re-open the file.
-        '''
+        """
         try:
             fs = os.stat(self.filename)
             self.where = self.fp.tell()
