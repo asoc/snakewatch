@@ -14,45 +14,29 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import, unicode_literals, division
 
 import ez_setup
 ez_setup.use_setuptools()
 
 import os
-import sys
 from setuptools import setup, find_packages
 
 from snakewatch import NAME, VERSION, DESCRIPTION, URL, AUTHOR, AUTHOR_EMAIL
 
-main = ['snakewatch/main.py']
-required_packages = ['colorama', 'argparse', 'importlib', 'pkgutil']
+required_packages = ['argparse', 'colorama', 'importlib', 'pkgutil', 'six']
 need_to_install = []
 
 extra_options = dict(
-    scripts=main,
 )
-options = dict()
-
-if 'py2exe' in sys.argv:
-    try:
-        import py2exe
-    except ImportError:
-        print('py2exe not found, cannot build executable.', file=sys.stderr)
-        sys.exit(1)
-
-    extra_options.update(dict(
-        console=main,
-        zipfile=None,
-    ))
-
-    options['py2exe'] = dict(
-        bundle_files=1,
-    )
+options = dict(
+)
 
 
 def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    with open(os.path.join(os.path.dirname(__file__), fname)) as fp:
+        return fp.read()
+
 
 for pkg in required_packages:
     try:

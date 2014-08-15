@@ -15,23 +15,24 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Future modules
-from __future__ import print_function
+from __future__ import print_function, absolute_import, unicode_literals, division
 
-# System modules
-import sys
+import argparse
+import importlib
+import logging
+import os
 import signal
 import stat
-import os
-import argparse
-import logging
+import sys
+
 from logging.handlers import RotatingFileHandler
 
-# Program modules
-from snakewatch import NAME, VERSION, DESCRIPTION, USER_PATH, URL, AUTHOR, AUTHOR_EMAIL, \
+from . import (
+    NAME, VERSION, DESCRIPTION, USER_PATH, URL, AUTHOR, AUTHOR_EMAIL,
     LOG_FILE, LOG_LEVEL, LOG_BACKUP_COUNT, LOG_MAX_BYTES, LOG_FORMAT, LOG_TO_STDOUT
-from snakewatch.util import AbortError, get_read_object
-import snakewatch.util
+)
+from .util import AbortError, get_read_object, config, ui_print
+
 
 _logger = logging.getLogger()
 _logger.setLevel(LOG_LEVEL)
@@ -52,15 +53,14 @@ def get_logger(name):
 
 def release_action_resources():
     """Release all resources loaded by all actions"""
-
-    if snakewatch.util.config is None:
+    if config() is None:
         return
 
-    for action in snakewatch.util.config.actions:
+    for action in config().actions:
         try:
             action.release_resources()
         except:
-            snakewatch.util.ui_print.error(
+            ui_print().error(
                 'Unable to release resources for action {}'.format(action.__class__.__name__),
                 str(action.cfg), sep='\n'
             )
@@ -108,7 +108,7 @@ def main(initial_args=None, handle_signals=True):
         _log_handler.setFormatter(logging.Formatter(fmt=LOG_FORMAT))
         _logger.addHandler(_log_handler)
     
-    snakewatch.util.argparser = parser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(
         prog=NAME,
         description=DESCRIPTION,
         formatter_class=argparse.RawDescriptionHelpFormatter
@@ -145,53 +145,57 @@ def main(initial_args=None, handle_signals=True):
         help='read input from stdin'
     )
 
-    import imp
-    import importlib
-    from snakewatch import mode as mode_package
-    suffixes = tuple([suffix[0] for suffix in imp.get_suffixes()])
-    mode_names = set([
-        os.path.splitext(module)[0]
-        for module in os.listdir(mode_package.__path__[0])
-        if module.endswith(suffixes)
-    ])
-    available_modes = dict()
-    for mode_name in mode_names:
-        if mode_name == '__init__':
-            continue
-        try:
-            mode_module = importlib.import_module('snakewatch.mode.{}'.format(mode_name))
-        except ImportError:
-            _logger.exception('Could not load mode module {}'.format(mode_name))
-            continue
-        else:
-            available_modes[mode_name] = mode_module
+    # Only one mode for now, so exclude all this stuff.
 
-        setup_arguments = getattr(mode_module, 'setup_arguments', None)
-        if setup_arguments and callable(setup_arguments):
-            try:
-                setup_arguments(parser)
-            except:
-                _logger.exception('{} mode has arguments but setup failed'.format(mode_name))
+    # import imp
+    # import importlib
+    # from snakewatch import mode as mode_package
+    # suffixes = tuple([suffix[0] for suffix in imp.get_suffixes()])
+    # mode_names = set([
+    #     os.path.splitext(module)[0]
+    #     for module in os.listdir(mode_package.__path__[0])
+    #     if module.endswith(suffixes)
+    # ])
+    # available_modes = dict()
+    # for mode_name in mode_names:
+    #     if mode_name == '__init__':
+    #         continue
+    #     try:
+    #         mode_module = importlib.import_module('snakewatch.mode.{}'.format(mode_name))
+    #     except ImportError:
+    #         _logger.exception('Could not load mode module {}'.format(mode_name))
+    #         continue
+    #     else:
+    #         available_modes[mode_name] = mode_module
+    #
+    #     setup_arguments = getattr(mode_module, 'setup_arguments', None)
+    #     if setup_arguments and callable(setup_arguments):
+    #         try:
+    #             setup_arguments(parser)
+    #         except:
+    #             _logger.exception('{} mode has arguments but setup failed'.format(mode_name))
+    #
+    # if not available_modes:
+    #     _logger.critical('No modes are available')
+    #     return 1
 
-    if not available_modes:
-        _logger.critical('No modes are available')
-        return 1
-
-    parser.add_argument(
-        '-m', '--mode',
-        choices=available_modes,
-        default='Console',
-        help='which mode to use'
-    )
+    # parser.add_argument(
+    #     '-m', '--mode',
+    #     choices=available_modes,
+    #     default='Console',
+    #     help='which mode to use'
+    # )
 
     try:
         args = parser.parse_args(initial_args)
     except SystemExit:
         return
 
+    args.mode = 'Console'
+
     _logger.debug('{}\n'.format('=' * 40))
 
-    mode = available_modes[args.mode]
+    mode = importlib.import_module('.mode.Console', __package__)
     handler = getattr(mode, '{}Mode'.format(args.mode), None)
     if not handler or not callable(handler):
         _logger.critical('{} mode structure is not valid'.format(args.mode))

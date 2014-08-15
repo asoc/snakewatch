@@ -15,8 +15,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from snakewatch.action._Action import Action
-from snakewatch.util import AbortError
+from __future__ import print_function, absolute_import, unicode_literals, division
+
+from ._Action import Action
+from ..util import AbortError
 
 
 class ExitAction(Action):

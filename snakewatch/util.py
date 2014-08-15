@@ -20,17 +20,35 @@ from __future__ import print_function
 import logging
 
 
-config = None
+_config = None
+
+
+def set_config(cfg):
+    global _config
+    _config = cfg
+
+
+def config():
+    return _config
 
 
 class UIPrint(object):
-    def __init__(self, notice, warning, error, get_choice):
-        self.notice = notice
-        self.warning = warning
-        self.error = error
-        self.get_choice = get_choice
+    def __init__(self, notice=None, warning=None, error=None, get_choice=None):
+        self.notice = notice or print
+        self.warning = warning or print
+        self.error = error or print
+        self.get_choice = get_choice or print
 
-ui_print = UIPrint(print, print, print, print)
+_ui_print = UIPrint()
+
+
+def set_ui_print(*args, **kwargs):
+    global _ui_print
+    _ui_print = UIPrint(*args, **kwargs)
+
+
+def ui_print():
+    return _ui_print
 
 
 def enum(*sequential, **named):

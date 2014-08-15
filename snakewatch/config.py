@@ -15,15 +15,17 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import re
+from __future__ import print_function, absolute_import, unicode_literals, division
+
+import importlib
 import json
 import os
-import importlib
+import re
+import six
 
-import snakewatch.util
-from snakewatch import USER_PATH
-from snakewatch.util import AbortError, ConfigError, NotConfirmedError
-from snakewatch.action._ConfirmAction import ConfirmAction
+from . import USER_PATH
+from .util import AbortError, ConfigError, NotConfirmedError, ui_print, set_config
+from .action._ConfirmAction import ConfirmAction
 
 
 def lower_keys(x):
@@ -51,7 +53,7 @@ def find_config(filename):
 
     cfg = None
     if curdircfg and userdircfg:
-        cfg = snakewatch.util.ui_print.get_choice(
+        cfg = ui_print().get_choice(
             'Config filename can refer to multiple locations. Please specify.',
             'Config Location',
             [curdircfg, userdircfg]
@@ -70,15 +72,15 @@ class Config(object):
     available_actions = {}
     
     def __init__(self, cfg_file, ui_kwargs):
-        snakewatch.util.config = self
+        set_config(self)
         self.actions = []
 
-        if isinstance(cfg_file, str):
+        if isinstance(cfg_file, six.string_types):
             try:
                 fp = open(find_config(cfg_file), 'r')
                 self.cfg = json.load(fp)
             except Exception as err:
-                snakewatch.util.ui_print.error('Cannot read config from {}'.format(cfg_file), str(err), sep='\n')
+                ui_print().error('Cannot read config from {}'.format(cfg_file), str(err), sep='\n')
                 raise AbortError()
 
             fp.close()
@@ -97,7 +99,7 @@ class Config(object):
             name = ptrn.sub('', entry['action']).title()
             entry['action'] = name
 
-            action_object_name = '%sAction' % name
+            action_object_name = '{}Action'.format(name)
 
             try:
                 action = Config.available_actions[name]
@@ -114,13 +116,13 @@ class Config(object):
             try:
                 self.actions.append(action(**kwargs))
             except ConfigError as ce:
-                snakewatch.util.ui_print.error('Config error detected:', str(ce), sep='\n')
+                ui_print().error('Config error detected:', str(ce), sep='\n')
                 raise AbortError()
             except NotConfirmedError as nce:
-                snakewatch.util.ui_print.error('Config entry not confirmed')
+                ui_print().error('Config entry not confirmed')
                 raise AbortError()
             except:
-                snakewatch.util.ui_print.error('Fatal Error when instantiating {}'.format(action_object_name))
+                ui_print().error('Fatal Error when instantiating {}'.format(action_object_name))
                 raise
         
     def match(self, line, output_method, **output_kwargs):
@@ -131,7 +133,6 @@ class Config(object):
 
         If no match is found, return the line unchanged
         """
-
         matched = False
         for action in self.actions:
             if not action.matches(line):
@@ -155,7 +156,6 @@ class DefaultConfig(Config):
     This config is only used when <USER_PATH>/default.json does not exist,
     and uses Print for all inputs.
     """
-
     def __init__(self, ui, ui_kwargs, use_file=True):
         user_default = DefaultConfig.file_for(ui)
         if use_file and os.path.exists(user_default):

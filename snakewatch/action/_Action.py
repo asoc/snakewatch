@@ -15,37 +15,38 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import, unicode_literals, division
 
-import re
 import copy
+import re
+import six
+
 from abc import ABCMeta, abstractmethod
 
-from snakewatch.util import ConfigError
+from ..util import ConfigError
 
 
+@six.add_metaclass(ABCMeta)
 class Action(object):
     """Base class for all Actions"""
 
-    __metaclass__ = ABCMeta
-    
     def __init__(self, cfg, required_attributes=list()):
         self.raw_cfg = copy.deepcopy(cfg)
         self.cfg = cfg
         try:
             self.pattern = re.compile(self.cfg['regex'])
         except Exception as err:
-            self._config_error('Invalid RegEx: %s' % str(err))
+            self._config_error('Invalid RegEx: {!s}'.format(err))
 
         self.name = self.__module__.split('.')[-1:][0]
         self.stop_matching = 'continue' not in self.cfg or not self.cfg['continue']
 
         for attr in required_attributes:
             if attr not in cfg:
-                self._config_error('missing required attribute %s' % attr)
+                self._config_error('missing required attribute {}'.format(attr))
 
     def _config_error(self, message):
-        raise ConfigError('%s: %s\n%s' % (
+        raise ConfigError('{}: {}\n{}'.format(
             self.__class__.__name__, message, self.cfg
         ))
 

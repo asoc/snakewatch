@@ -15,12 +15,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from __future__ import print_function, absolute_import, unicode_literals, division
+
+import six
+
 from abc import ABCMeta, abstractmethod, abstractproperty
 
-class Input():
-    """Base class for all Inputs"""
 
-    __metaclass__ = ABCMeta
+@six.add_metaclass(ABCMeta)
+class Input(object):
+    """Base class for all Inputs"""
 
     pipe = None
 

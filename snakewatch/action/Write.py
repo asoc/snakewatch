@@ -15,11 +15,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from __future__ import print_function, absolute_import, unicode_literals, division
+
 import os
 
-import snakewatch.util
-from snakewatch.util import AbortError, ConfigError
-from snakewatch.action._ConfirmAction import ConfirmAction
+from ._ConfirmAction import ConfirmAction
+from ..util import AbortError, ConfigError, ui_print
 
 
 class WriteAction(ConfirmAction):
@@ -28,7 +29,7 @@ class WriteAction(ConfirmAction):
     instances = dict()
 
     def __init__(self, cfg, ui_confirm):
-        self.mode = 'w' if 'truncate' in cfg and cfg['truncate'] else 'a'
+        self.mode = 'w' if cfg.get('truncate', False) else 'a'
 
         if 'filename' in cfg:
             filename = cfg['filename']
@@ -52,13 +53,13 @@ class WriteAction(ConfirmAction):
             inst.fp = file_instances[0]
 
             if inst.fp.mode != inst.mode:
-                raise ConfigError('File %s is opened in conflicting modes.' % inst.filename)
+                raise ConfigError('File {} is opened in conflicting modes.'.format(inst.filename))
         else:
             try:
                 inst.fp = open(inst.filename, inst.mode)
             except (OSError, IOError) as err:
-                snakewatch.util.ui_print.error(
-                    'Cannot open %s for writing.' % inst.filename,
+                ui_print().error(
+                    'Cannot open {} for writing.'.format(inst.filename),
                     str(err), sep='\n'
                 )
                 raise AbortError()
@@ -90,7 +91,7 @@ class WriteAction(ConfirmAction):
         WriteAction.close_file_instance(self)
 
     def confirm_message(self):
-        return 'The file %s will be %s.' % (
+        return 'The file {} will be {}.'.format(
             self.filename,
             'overwritten' if self.mode == 'w' else 'written to',
         )

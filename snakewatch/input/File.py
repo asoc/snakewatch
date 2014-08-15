@@ -15,10 +15,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from __future__ import print_function, absolute_import, unicode_literals, division
+
+import six
 import os
 import time
 
-from snakewatch.input._Input import Input
+from ._Input import Input
+
 
 class FileInput(Input):
     """An Input that reads from a system file"""
@@ -63,14 +67,13 @@ class FileInput(Input):
                     poll_callback()
                 self.open()
             except Exception as err:
-                int_callback('%s\n%s' % (self.filename, err))
+                int_callback('\n'.join([self.filename, err]))
                 time.sleep(1)
                 self.fp = None
             else:
                 started_callback()
             
-            while self.fp and isinstance(self.fp, file) and \
-                    not self.fp.closed:
+            while self.fp and not getattr(self.fp, 'closed', True):
                 if poll_callback:
                     poll_callback()
 
@@ -95,7 +98,7 @@ class FileInput(Input):
                 return ''
             line = self.fp.readline()
         except Exception as err:
-            int_callback('%s\n%s' % (self.filename, err))
+            int_callback('\n'.join([self.filename, err]))
             self.re_open()
             return ''
         else:
@@ -111,6 +114,6 @@ class FileInput(Input):
         self.reopen = False
         if not self.fp:
             return
-        if isinstance(self.fp, file):
+        if six.callable(getattr(self.fp, 'close', None)):
             self.fp.close()
         self.fp = None

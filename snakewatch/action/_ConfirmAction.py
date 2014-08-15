@@ -15,20 +15,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from __future__ import print_function, absolute_import, unicode_literals, division
+
+import six
+
 from abc import ABCMeta, abstractmethod
 
-from snakewatch.util import NotConfirmedError
-from snakewatch.action._Action import Action
+from ._Action import Action
+from ..util import NotConfirmedError
 
 
+@six.add_metaclass(ABCMeta)
 class ConfirmAction(Action):
     """An abstract Action that requests user confirmation
 
     If any confirm_config request fails, snakewatch will not run.
     """
-
-    __metaclass__ = ABCMeta
-
     def __init__(self, cfg, ui_confirm, required_attributes=list()):
         super(ConfirmAction, self).__init__(cfg, required_attributes)
 
@@ -38,3 +40,10 @@ class ConfirmAction(Action):
     @abstractmethod
     def confirm_message(self):
         pass
+
+    def release_resources(self):
+        pass
+
+    def run_on(self, line):
+        pass
+

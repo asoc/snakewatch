@@ -15,6 +15,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from __future__ import print_function, absolute_import, unicode_literals, division
+
 
 def get_arg_group(argparser, mode_name):
     return argparser.add_argument_group('{} Mode Only'.format(mode_name))

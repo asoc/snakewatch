@@ -15,10 +15,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from __future__ import print_function, absolute_import, unicode_literals, division
+
 import re
+
 from colorama import Fore, Back, Style
 
-from snakewatch.action._Action import Action
+from ._Action import Action
 
 
 class PrintAction(Action):
