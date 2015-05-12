@@ -212,9 +212,9 @@ def main(initial_args=None, handle_signals=True):
         signal.signal(signal.SIGABRT, handler.handle_signal)
 
     try:
-        handler.run(get_read_object(args), args)
-    except AbortError:
-        pass
+        exit_code = handler.run(get_read_object(args), args) or 0
+    except AbortError as err:
+        exit_code = err.exit_code
     except:
         if LOG_LEVEL == logging.DEBUG:
             raise
@@ -228,6 +228,7 @@ def main(initial_args=None, handle_signals=True):
 
     _logger.debug('snakewatch exiting\n')
     _log_handler.close()
+    return exit_code
 
 if __name__ == '__main__':
     sys.exit(main() or 0)

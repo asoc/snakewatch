@@ -16,16 +16,11 @@ along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 """
 from __future__ import print_function, absolute_import, unicode_literals, division
 
-import ez_setup
-ez_setup.use_setuptools()
-
 import os
+
 from setuptools import setup, find_packages
 
 from snakewatch import NAME, VERSION, DESCRIPTION, URL, AUTHOR, AUTHOR_EMAIL
-
-required_packages = ['argparse', 'colorama', 'importlib', 'pkgutil', 'six']
-need_to_install = []
 
 extra_options = dict(
 )
@@ -36,13 +31,6 @@ options = dict(
 def read(fname):
     with open(os.path.join(os.path.dirname(__file__), fname)) as fp:
         return fp.read()
-
-
-for pkg in required_packages:
-    try:
-        __import__(pkg)
-    except ImportError:
-        need_to_install.append(pkg)
 
 
 setup(
@@ -58,7 +46,7 @@ setup(
     long_description=read('README'),
 
     packages=find_packages(),
-    install_requires=need_to_install,
+    install_requires=['colorama', 'six'],
     
     entry_points={
         'console_scripts': [

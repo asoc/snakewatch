@@ -94,9 +94,9 @@ class ConsoleMode(object):
         else:
             try:
                 self.cfg = config.Config(args.config or self.config_loc, ui_kwargs)
-            except AbortError:
+            except AbortError as err:
                 self.close()
-                return
+                return err.exit_code
             except Exception as err:
                 self.print_err('Error in config script {}\n{!s}'.format(
                     args.config, err

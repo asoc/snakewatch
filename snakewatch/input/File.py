@@ -67,7 +67,7 @@ class FileInput(Input):
                     poll_callback()
                 self.open()
             except Exception as err:
-                int_callback('\n'.join([self.filename, err]))
+                int_callback('{}\n{!s}'.format(self.filename, err))
                 time.sleep(1)
                 self.fp = None
             else:

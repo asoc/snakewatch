@@ -23,8 +23,14 @@ from ..util import AbortError
 
 class ExitAction(Action):
     """An action that causes snakewatch to exit"""
+
+    def __init__(self, cfg):
+        super(ExitAction, self).__init__(cfg)
+
+        self.exit_code = int(self.cfg.get('code', '0'))
+
     def run_on(self, line):
-        raise AbortError()
+        raise AbortError(line, self.exit_code)
 
     def release_resources(self):
         pass

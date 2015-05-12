@@ -80,8 +80,11 @@ class SysToLogging(object):
 
 
 class AbortError(Exception):
-    def __init__(self):
+    def __init__(self, message, exit_code):
         super(AbortError, self).__init__()
+
+        self.message = message
+        self.exit_code = exit_code
 
 
 class ConfigError(Exception):
