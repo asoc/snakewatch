@@ -64,11 +64,11 @@ class ConsoleMode(object):
         self.interactive = None
         self.watch_loc = None
         self.config_loc = None
+        self.quiet = False
 
         set_ui_print(self.print_ntc, self.print_warn, self.print_err, self.get_choice)
 
-    def run(self, start_input, args):
-        """Read in the config and start watching the input"""
+    def pre_run(self, start_input, cfg, force_default_config=False):
         cl_init()
 
         if not start_input and not self.watch_loc:
@@ -82,31 +82,38 @@ class ConsoleMode(object):
         self.watch_loc = start_input or self.watch_loc
 
         ui_kwargs = {'ui_confirm': self.confirm}
-        if not args.config and not self.config_loc:
-            if args.no_config:
+        if not cfg and not self.config_loc:
+            if force_default_config:
                 self.cfg = config.DefaultConfig(self, use_file=False, ui_kwargs=ui_kwargs)
             else:
                 self.cfg = config.DefaultConfig(self, ui_kwargs=ui_kwargs)
-                msg = 'No config provided, using {}'.format(self.cfg.source)
-                if self.cfg.source == 'default':
-                    msg = '\n'.join([msg, 'Consider creating {}'.format(config.DefaultConfig.file_for(self))])
-                self.print_ntc(msg)
+                if not self.quiet:
+                    msg = 'No config provided, using {}'.format(self.cfg.source)
+                    if self.cfg.source == 'default':
+                        msg = '\n'.join([msg, 'Consider creating {}'.format(config.DefaultConfig.file_for(self))])
+                    self.print_ntc(msg)
         else:
             try:
-                self.cfg = config.Config(args.config or self.config_loc, ui_kwargs)
+                self.cfg = config.Config(cfg or self.config_loc, ui_kwargs)
             except AbortError as err:
                 self.close()
                 return err.exit_code
             except Exception as err:
                 self.print_err('Error in config script {}\n{!s}'.format(
-                    args.config, err
+                    cfg, err
                 ))
                 self.close()
                 return
 
         self.config_loc = self.cfg.source
-        
+
         self.input = start_input
+
+    def run(self, skip_pre_run=False, start_input=None, args=None):
+        """Read in the config and start watching the input"""
+        if not skip_pre_run:
+            self.pre_run(start_input, args.config, args.no_config)
+
         self.interrupted = False
         self.input.watch(
             self.started_callback, 
@@ -151,10 +158,11 @@ class ConsoleMode(object):
 
     def started_callback(self):
         """Called when the watcher has successfully opened the input"""
-        if self.interrupted:
-            self.print_ntc('Watch resuming on {}'.format(self.input.name()))
-        else:
-            self.print_ntc('(press Ctrl-C to stop) Watching {}'.format(self.input.name()))
+        if not self.quiet:
+            if self.interrupted:
+                self.print_ntc('Watch resuming on {}'.format(self.input.name()))
+            else:
+                self.print_ntc('(press Ctrl-C to stop) Watching {}'.format(self.input.name()))
         self.interrupted = False
         
     def output_callback(self, line):
@@ -173,7 +181,8 @@ class ConsoleMode(object):
         self.received_signal = True
 
         if self._waiting_for_input:
-            self.print_err('Waiting for stdin data. Press enter to quit (use Ctrl/Cmd-D to avoid this message)')
+            if not self.quiet:
+                self.print_err('Waiting for stdin data. Press enter to quit (use Ctrl/Cmd-D to avoid this message)')
             return
 
         _logger.debug('Received signal: {:d}'.format(signum))
@@ -190,7 +199,7 @@ class ConsoleMode(object):
         self.closed = True
         if self.interactive and not self.input:
             self.interactive.cancel()
-        elif self.received_signal:
+        elif self.received_signal and not self.quiet:
             self.print_err('Received interrupt, {}'.format('stopping' if self.interactive else 'quitting'))
         
         print(Style.RESET_ALL, end='')

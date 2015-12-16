@@ -98,7 +98,7 @@ class FileInput(Input):
                 return ''
             line = self.fp.readline()
         except Exception as err:
-            int_callback('\n'.join([self.filename, err]))
+            int_callback('\n'.join([self.filename, str(err)]))
             self.re_open()
             return ''
         else:

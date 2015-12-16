@@ -30,7 +30,7 @@ from ..util import ConfigError
 class Action(object):
     """Base class for all Actions"""
 
-    def __init__(self, cfg, required_attributes=list()):
+    def __init__(self, cfg, required_attributes=None):
         self.raw_cfg = copy.deepcopy(cfg)
         self.cfg = cfg
         try:
@@ -41,7 +41,7 @@ class Action(object):
         self.name = self.__module__.split('.')[-1:][0]
         self.stop_matching = 'continue' not in self.cfg or not self.cfg['continue']
 
-        for attr in required_attributes:
+        for attr in required_attributes or []:
             if attr not in cfg:
                 self._config_error('missing required attribute {}'.format(attr))
 

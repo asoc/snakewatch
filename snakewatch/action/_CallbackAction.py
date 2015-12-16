@@ -17,33 +17,19 @@ along with snakewatch.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function, absolute_import, unicode_literals, division
 
-import six
-
-from abc import ABCMeta, abstractmethod
-
 from ._Action import Action
-from ..util import NotConfirmedError
 
 
-@six.add_metaclass(ABCMeta)
-class ConfirmAction(Action):
-    """An abstract Action that requests user confirmation
-
-    If any confirm_config request fails, snakewatch will not run.
-    """
-    def __init__(self, cfg, ui_confirm, required_attributes=None):
-        super(ConfirmAction, self).__init__(cfg, required_attributes)
-
-        if not ui_confirm(self.confirm_message()):
-            raise NotConfirmedError()
-
-    @abstractmethod
-    def confirm_message(self):
-        pass
+class CallbackAction(Action):
+    """An Action that executes a function."""
+    def __init__(self, api, config, callback, required_attributes=None):
+        super(CallbackAction, self).__init__(config, required_attributes)
+        self.api = api
+        self.callback = callback
 
     def release_resources(self):
         pass
 
     def run_on(self, line):
-        pass
+        self.callback(self, line)
 

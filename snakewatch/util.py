@@ -56,13 +56,13 @@ def enum(*sequential, **named):
     return type('Enum', (), enums)
 
 
-def get_read_object(args):
-    if args.read:
+def get_read_object(read, watch, lines):
+    if read:
         from snakewatch.input import STD
         return STD.STDInput()
-    elif args.watch is not None:
+    elif watch is not None:
         from snakewatch.input import File
-        return File.FileInput(args.watch, args.lines)
+        return File.FileInput(watch, lines)
     return None
 
 
