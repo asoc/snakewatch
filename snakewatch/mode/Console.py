@@ -21,6 +21,7 @@ import logging
 import os
 import re
 import six
+import sys
 
 from colorama import init as cl_init, deinit as cl_deinit, Fore, Back, Style
 
@@ -169,6 +170,7 @@ class ConsoleMode(object):
         """Called when the watcher has read a line and performed an action"""
         self.interrupted = False
         self.cfg.match(line, print, **{'end': ''})
+        sys.stdout.flush()
 
     def int_callback(self, error):
         """Called when the watcher encounters a problem"""
