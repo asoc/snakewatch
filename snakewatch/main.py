@@ -212,9 +212,9 @@ def main(initial_args=None, handle_signals=True):
         signal.signal(signal.SIGABRT, handler.handle_signal)
 
     try:
-        exit_code = handler.run(get_read_object(
+        exit_code = handler.run(start_input=get_read_object(
             args.read, args.watch, args.lines
-        ), args) or 0
+        ), args=args) or 0
     except AbortError as err:
         exit_code = err.exit_code
     except:
