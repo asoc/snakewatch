@@ -78,7 +78,8 @@ class FileInput(Input):
                     poll_callback()
 
                 line = self.readline(int_callback)
-                if line != '':
+
+                if line:
                     output_callback(line)
                 else:
                     time.sleep(0.1)

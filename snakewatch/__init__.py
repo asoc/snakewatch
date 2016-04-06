@@ -21,7 +21,7 @@ import os
 import logging
 
 NAME = 'snakewatch'
-VERSION = '1.2.1'
+VERSION = '1.2.2'
 DESCRIPTION = '{} v{}\nA log watcher'.format(NAME, VERSION)
 URL = 'https://github.com/asoc/snakewatch'
 AUTHOR = 'Alex Honeywell'

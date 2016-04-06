@@ -47,7 +47,10 @@ class PrintAction(Action):
         self.style = style
         
     def run_on(self, line):
-        return ''.join([self.style, line])
+        try:
+            return ''.join([self.style, line])
+        except UnicodeDecodeError:
+            return ''.join([self.style, line.decode('UTF-8')])
 
     def release_resources(self):
         pass
