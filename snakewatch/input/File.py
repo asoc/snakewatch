@@ -34,12 +34,12 @@ class FileInput(Input):
         self.has_opened = False
         self.fp = None
         self.where = 0
-    
+
     def name(self):
         return os.path.basename(self.filename)
-    
+
     def open(self):
-        self.fp = open(self.filename, 'r')
+        self.fp = open(self.filename, 'rb' if six.PY3 else 'r')
         if not self.has_opened:
             self.has_opened = True
             if self.readback > -1:
@@ -72,7 +72,7 @@ class FileInput(Input):
                 self.fp = None
             else:
                 started_callback()
-            
+
             while self.fp and not getattr(self.fp, 'closed', True):
                 if poll_callback:
                     poll_callback()
@@ -83,7 +83,7 @@ class FileInput(Input):
                     output_callback(line)
                 else:
                     time.sleep(0.1)
-    
+
     def readline(self, int_callback):
         """Read a line from the file.
 
@@ -98,6 +98,9 @@ class FileInput(Input):
                 self.re_open()
                 return ''
             line = self.fp.readline()
+
+            if six.PY3:
+                line = line.decode('UTF-8')
         except Exception as err:
             int_callback('\n'.join([self.filename, str(err)]))
             self.re_open()
