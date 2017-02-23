@@ -28,9 +28,11 @@ class SnakewatchAPI(object):
     class StopWatching(Exception):
         pass
 
-    def __init__(self, watch=None, config=None, start_at=0,
+    def __init__(self, watch=None, config=None, start_at=-1, start_at_byte=-1,
                  remove_default_actions=True):
-        self.watch = get_read_object(watch is None, watch, start_at)
+        self.watch = get_read_object(
+            watch is None, watch, start_at, start_at_byte
+        )
         self.handler = ConsoleMode()
         self.handler.quiet = True
         self.handler.pre_run(self.watch, config)
@@ -50,6 +52,9 @@ class SnakewatchAPI(object):
         config['regex'] = pattern
 
         ca = CallbackAction(self, config, callback)
+
+        if index is None:
+            index = -1
 
         if isinstance(index, Action):
             index = self.actions.index(index)
@@ -71,3 +76,6 @@ class SnakewatchAPI(object):
             self.handler.run(True)
         except SnakewatchAPI.StopWatching:
             pass
+
+    def stop(self):
+        self.watch.close()

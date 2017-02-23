@@ -21,27 +21,41 @@ import six
 import os
 import time
 
+try:
+    from pathlib import Path
+except ImportError:
+    Path = None
+
 from ._Input import Input
 
 
 class FileInput(Input):
     """An Input that reads from a system file"""
 
-    def __init__(self, filename, readback=0):
+    def __init__(self, filename, readback=-1, readbytes=-1):
         self.filename = filename
         self.readback = readback
+        self.readbytes = readbytes
         self.reopen = True
         self.has_opened = False
         self.fp = None
         self.where = 0
 
     def name(self):
+        if isinstance(self.filename, Path):
+            return self.filename.name
         return os.path.basename(self.filename)
 
     def open(self):
-        self.fp = open(self.filename, 'rb' if six.PY3 else 'r')
+        if isinstance(self.filename, Path):
+            self.fp = self.filename.open('rb' if six.PY3 else 'r')
+        else:
+            self.fp = open(self.filename, 'rb' if six.PY3 else 'r')
+
         if not self.has_opened:
             self.has_opened = True
+            if self.readbytes >= 0:
+                self.fp.seek(self.readbytes)
             if self.readback > -1:
                 self.fp.seek(0, os.SEEK_END)
                 if self.readback > 0:
@@ -91,7 +105,11 @@ class FileInput(Input):
         set the readback to start at the beginning, and let the watcher re-open the file.
         """
         try:
-            fs = os.stat(self.filename)
+            if isinstance(self.filename, Path):
+                fs = self.filename.stat()
+            else:
+                fs = os.stat(self.filename)
+
             self.where = self.fp.tell()
             if fs.st_size < self.where:
                 # File contents has been truncated, so close and reopen the file
@@ -102,7 +120,7 @@ class FileInput(Input):
             if six.PY3:
                 line = line.decode('UTF-8')
         except Exception as err:
-            int_callback('\n'.join([self.filename, str(err)]))
+            int_callback('\n'.join([str(self.filename), str(err)]))
             self.re_open()
             return ''
         else:

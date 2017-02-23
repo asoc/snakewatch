@@ -107,7 +107,7 @@ def main(initial_args=None, handle_signals=True):
 
         _log_handler.setFormatter(logging.Formatter(fmt=LOG_FORMAT))
         _logger.addHandler(_log_handler)
-    
+
     parser = argparse.ArgumentParser(
         prog=NAME,
         description=DESCRIPTION,
@@ -115,28 +115,35 @@ def main(initial_args=None, handle_signals=True):
     )
     global_args = parser.add_argument_group('Global')
     parser.add_argument(
-        '-v', '--version', 
-        action='version', 
+        '-v', '--version',
+        action='version',
         version='\n'.join([NAME, VERSION, '', '{} <{}>'.format(AUTHOR, AUTHOR_EMAIL), URL])
     )
     parser_config = global_args.add_mutually_exclusive_group()
     parser_config.add_argument(
-        '-c', '--config', 
+        '-c', '--config',
         help='which configuration file to use'
     )
     parser_config.add_argument(
         '--no-config', action='store_true',
         help='don\'t use any configuration file (including the default), print everything'
     )
-    parser.add_argument(
+
+    mutp = parser.add_mutually_exclusive_group()
+    mutp.add_argument(
         '-n', '--lines',
         default=0, type=int,
         help='start LINES from end of the file, use -1 to start at the beginning',
     )
+    mutp.add_argument(
+        '-b', '--bytes',
+        default=0, type=int,
+        help='Seek #-bytes from the start of the file before reading.'
+    )
 
     watch_loc_group = global_args.add_mutually_exclusive_group()
     watch_loc_group.add_argument(
-        '-w', '--watch', 
+        '-w', '--watch',
         help='which file to watch'
     )
     watch_loc_group.add_argument(
@@ -213,7 +220,7 @@ def main(initial_args=None, handle_signals=True):
 
     try:
         exit_code = handler.run(start_input=get_read_object(
-            args.read, args.watch, args.lines
+            args.read, args.watch, args.lines, args.bytes
         ), args=args) or 0
     except AbortError as err:
         exit_code = err.exit_code
