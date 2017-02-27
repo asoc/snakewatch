@@ -21,7 +21,7 @@ import os
 import logging
 
 NAME = 'snakewatch'
-VERSION = '1.2.3'
+VERSION = '1.2.4'
 DESCRIPTION = '{} v{}\nA log watcher'.format(NAME, VERSION)
 URL = 'https://github.com/asoc/snakewatch'
 AUTHOR = 'Alex Honeywell'
@@ -32,6 +32,6 @@ USER_PATH = os.path.expanduser(os.path.join('~', '.snakewatch'))
 LOG_FILE = os.path.join(USER_PATH, 'snakewatch.log')
 LOG_TO_STDOUT = False
 LOG_FORMAT = '%(asctime)-15s [%(levelname)s] %(name)s: %(message)s'
-LOG_LEVEL = logging.INFO
+LOG_LEVEL = logging.DEBUG
 LOG_MAX_BYTES = 1024*1024*5
 LOG_BACKUP_COUNT = 1
